@@ -31,13 +31,13 @@ int pcf_init_mdi(void)
 	int status = 0;
 	uint16_t t_tout_confirm_disable_wd = 0;
 		
-	if(uart_ops.len == 1){
+	if(mdi_type == PCF7945){
 		// Init sequence for PCF7945
-		status = enter_monitor_mode(1);
+		status = enter_monitor_mode();
 	}
 	else{
-		// Init sequence for PCF7945
-		status = enter_monitor_mode(0);
+		// Init sequence for 26A0700
+		status = enter_monitor_mode();
 	}
 
 	active_MSCL_rising_edge_IT(0);
@@ -296,19 +296,14 @@ int ee_prog_conf(unsigned char page)
 	/* send cmd to PCF */
 	status |= send_mdi_cmd(C_PROG_CONFIG);
 
-	/* send page 127 byte 2 */
-	//status |= send_mdi_cmd(byte_2_3[0]);
-
 	/* send page 127 byte 3 */
-	//status |= send_mdi_cmd(byte_2_3[1]);
 	status |= send_data(byte_2_3, 2);
-
-	// ToDo: Send array with "send_data" command
 	
 	/* Receive status feedback */
 	status |= recv_data(0x01);
 
 	if( status != 0){
+		status |= PROG_SPCL_PG_FAIL;
 		return status;
 	}
 	else{
@@ -353,23 +348,27 @@ int program_eerom(void)
 	}
 	
 	
-/*start_page = chip_data.eeprom_start / EEPROM_PAGE_SIZE;
-pages = chip_data.eeprom_len / EEPROM_PAGE_SIZE;*/
-
 	if ((chip_data.eeprom_start + chip_data.eeprom_len) > EEROM_SIZE)
 		return -1;
 	
 	pages = (pages > 0) ? pages : 1;				// at least one page must be written. ToDo: Error Message to user
 	for (unsigned int i = 0; i < pages; i++) {
-		if (((start_page + i) == 0) || (((start_page + i) >= 125) && ((start_page + i) <= 127))) {
+
+		/*  Treatment for writing special pages */
+		if (((start_page + i) == 0) || (((start_page + i) >= 125) && ((start_page + i) <= 127)))
+		{
 			if ((start_page + i) == 127) 
 			{
 				status |= ee_prog_conf(start_page + i);
-				//if (status != OK)	// commented out: could we continue although ee_prog_conf was not successful?
-				//	return -1;
+
+				/* If special pages programming failed, PCF might fall into an error state. Thus, MDI must be reinitialized */
+				if(status & PROG_SPCL_PG_FAIL){
+					status = PROG_SPCL_PG_FAIL;		// reset err bits other then PROG_SPCL_PG_FAIL (redundand info not needed), as this would lead to unwanted error detection later
+					pcf_init_mdi();		// ToDo: Evaluate return value and create corresponding reaction to it
+				}
 
 			}
-			continue;		// leave for-loop
+			continue;		// exit current for-loop iteration and continue with next iteration
 		}
 		if (i != 0)
 			memcpy(&mdi.buf[0], &mdi.buf[(start_page + i) * EEPROM_PAGE_SIZE], EEPROM_PAGE_SIZE); // ToDo: Abolish copying to mdi.buf. Read directly from chipdata instead
@@ -388,7 +387,7 @@ pages = chip_data.eeprom_len / EEPROM_PAGE_SIZE;*/
 	
 		/* check eecon */	
 		status |= recv_data(0x01);
-		if (status != OK)
+		if (status != OK && status != PROG_SPCL_PG_FAIL)
 			return status;
 			
 		if ((mdi.data[0] & 0xC0) != 0x00)

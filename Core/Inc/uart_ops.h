@@ -57,6 +57,7 @@ enum UART_STATUS_E {
 
 extern struct chip_data_s chip_data;
 extern struct uart_ops_s uart_ops;
+extern enum MDI_DEVICETYPE_E mdi_type;
 
 int revert(unsigned char *data, unsigned long len);
 unsigned long crc32_caculate(const unsigned char *data, size_t len);

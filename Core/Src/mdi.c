@@ -12,6 +12,7 @@
 #include "main.h"
 #include "mdi.h"
 #include "dwt_stm32_delay.h"
+#include "uart_ops.h"
 
 extern ADC_HandleTypeDef hadc1;
 extern UART_HandleTypeDef huart1;
@@ -95,7 +96,7 @@ __inline static int wait_mscl_low(void)
  * 				0			26A0700			BATT_ON and MSDA_OUTPUT_0, wait until SCL high, wait until SCL low, MSDA_OUTPUT_1 (MDI internal mode), wait ~25us, 
  * 				1			PCF7945C05	BATT_ON and MSDA_OUTPUT_0, wait 500us (225...725us), MSDA_OUTPUT_1, wait until SCL low, TBC
  */
-int enter_monitor_mode(enum MDI_DEVICETYPE_E mditype) // // ToDo: Catch error case: Device is not connected at all
+int enter_monitor_mode(void) // // ToDo: Catch error case: Device is not connected at all
 {
 	unsigned long timeout = 0;
 	volatile uint8_t debug_ctr = 0xFF;
@@ -103,7 +104,6 @@ int enter_monitor_mode(enum MDI_DEVICETYPE_E mditype) // // ToDo: Catch error ca
 
 	
 	/* Disable PIO controller IRQs. */
-	//NVIC_DisableIRQ(PIOA_IRQn);
 	set_IRQ_and_EXTI_Line_Cmd(0,0);	//DISABLE MSCL interrupt, (falling edge)
 	
 	/* power down */
@@ -112,7 +112,7 @@ int enter_monitor_mode(enum MDI_DEVICETYPE_E mditype) // // ToDo: Catch error ca
 		
 	/* electrical config for SCL pin */
 	// PCF7945C05
-	if(mditype == 1){
+	if(mdi_type == PCF7945){
 		set_MSCL_input_floating();
 	}
 	// 26A0700
@@ -125,7 +125,7 @@ int enter_monitor_mode(enum MDI_DEVICETYPE_E mditype) // // ToDo: Catch error ca
 	LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_3);		// TestPoint
 	
 	// PCF7945C05
-	if(mditype == 1){
+	if(mdi_type == 1){
 		delay_us(T_DLY_SDA_HIGH_AFT_PON);
 		set_MSDA(1);
 	}
@@ -144,7 +144,7 @@ int enter_monitor_mode(enum MDI_DEVICETYPE_E mditype) // // ToDo: Catch error ca
 
 	
 	// PCF7945C05
-	if(mditype == 1){
+	if(mdi_type == 1){
 		set_MSDA(0);
 		delay_us(8);
 		set_MSDA(1);
@@ -154,8 +154,6 @@ int enter_monitor_mode(enum MDI_DEVICETYPE_E mditype) // // ToDo: Catch error ca
 		delay_us(2);
 		set_MSDA(1);
 	}	
-	
-	
 	
 	//own test
 	delay_us(100);	

@@ -18,6 +18,7 @@
 
 struct chip_data_s chip_data;
 struct uart_ops_s uart_ops;
+enum MDI_DEVICETYPE_E mdi_type;
 
 extern UART_HandleTypeDef huart1;
 
@@ -175,6 +176,13 @@ int uart_ops_handler(void)
 	
 	switch(ops)	{
 	case CONNECT:
+		if(uart_ops.len == 1){
+			mdi_type = PCF7945;
+		}
+		else{
+			mdi_type = F26A0700;
+		}
+
 		ret = pcf_init_mdi();
 		if (ret < 0){
 			status = CONNECT_ERR;
