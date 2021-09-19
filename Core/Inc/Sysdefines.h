@@ -5,7 +5,6 @@
 // includes
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx.h"
-#include "mdi.h"
 
 // System constants definition
 
@@ -31,7 +30,6 @@ Configure Pins of STM32
 #define BAT_PIN_number 12
 
 
-
 // Configs for HW
 #define USE_CRC32_HW	1		// Use HW CRC32 Calculation Unit of STM32F1
 
@@ -49,7 +47,7 @@ Configure Pins of STM32
 #define TIMEOUT_SCL_RISE_WD_DIS		400									// 400�s		timeout after c_trace when PCF must respond with confirmation pulse (WD disable)
 #define TIMEOUT_SCL_FALL_WD_DIS		50									// 50�s			max length of PCF c_trace WD_disable confirmation pulse
 #define T_DLY_SDA_HIGH_AFT_PON		500            // 500us (225...725us possible). Time after BATT_ON when MSDA is set high. Needed for PCF7945C05 MDI init
-
+#define T_DLY_SDA_LOW_AFT_SDA_HIGH  200
 
 #define EROM_SIZE            8192
 #define EROM_PAGE_SIZE       32
@@ -66,18 +64,6 @@ Configure Pins of STM32
 Definition of Enums 
 ***************************/
 
-enum MDI_DIR_E {
-	RECV = 0x10,
-	SEND = 0x20
-};
-
-enum MDI_STATUS_E {
-	INIT 						= 0x09,
-	IDLE 						= 0x0A,
-	BUSY 						= 0x0B,
-	WAIT_LAST_PULSE = 0x0C,
-	DONE 						= 0x0D
-};
 
 /*
 // Attention: Defined also in mdi.h
@@ -87,27 +73,7 @@ enum MDI_DEVICETYPE_E {
 };
 */
 
-enum MDI_COMMAND_E {
-	C_GO = 0x01,
-	C_TRACE = 0x02,
-	C_GETDAT = 0x03,
-	C_SETDAT = 0x04,
-	C_SETPC = 0x05,
-	C_RESET = 0x06,
-	C_SETBRK = 0x07,
-	C_ER_EROM = 0x08,
-	C_WR_EROM = 0x09,
-	C_WR_EEPROM = 0x0A,
-	C_WR_EROM_B = 0x0B,
-	C_SIG_ROM = 0x0C,
-	C_SIG_EROM = 0x0D,
-	C_EE_DUMP = 0x0E,
-	C_ER_DUMP = 0x0F,
-	C_SIG_EE = 0x11,
-	C_PROTECT = 0x12,
-	C_PROG_CONFIG = 0x14,
-	C_WR_EROM64 = 0x18	
-};
+
 
 struct chip_data_s {
 	unsigned short erom_start;	  // erom start address
@@ -138,23 +104,6 @@ struct uart_ops_s {
 	unsigned char status;		  // status
 };
 
-struct mdi_data_s {
-	enum MDI_DEVICETYPE_E type;		// type of mdi device
-	enum MDI_DIR_E dir;			  // mdi transmission direction
-	enum MDI_STATUS_E status;		  // mdi status ToDo: Change to enum type
-	union {
-		struct {
-			enum MDI_COMMAND_E command;	      // mdi command
-			unsigned char para;		      // mdi parameter
-			unsigned char buf[BUF_SIZE];  //  mdi send data	 max page size is 32bytes + 32Bdummy
-		};
-		unsigned char data[BUF_SIZE + 2];
-	};
-	unsigned long transfer;		  // data transfered
-	unsigned char *data_ptr;	// pointer to the data to be sent
-};
-
-extern struct mdi_data_s mdi;
 
 
 

@@ -23,9 +23,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Sysdefines.h"
+#include "mdi.h"
 #include "uart_ops.h"
 #include "rom.h"
-#include "Sysdefines.h"
 #include "Stubs.h"
 #include "stdlib.h"
 #include "usb.h"
@@ -364,7 +365,7 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_2|LL_GPIO_PIN_3);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOB, BAT_Pin|SDA_Pin);
+  LL_GPIO_ResetOutputPin(GPIOB, BAT_PIN | MSDA_PIN);
 
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_13;
@@ -381,24 +382,24 @@ static void MX_GPIO_Init(void)
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = BAT_Pin;
+  GPIO_InitStruct.Pin = BAT_PIN;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  LL_GPIO_Init(BAT_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(BAT_PORT, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = SDA_Pin;
+  GPIO_InitStruct.Pin = MSDA_PIN;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(SDA_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(MSDA_PORT, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = SCL_Pin;
+  GPIO_InitStruct.Pin = MSCL_PIN;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-  LL_GPIO_Init(SCL_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(MSCL_PORT, &GPIO_InitStruct);
 
 }
 

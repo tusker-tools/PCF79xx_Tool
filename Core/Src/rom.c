@@ -1,18 +1,11 @@
-/*
- * rom.c
- *
- * Created: 2018/8/17 13:47:10
- *  Author: wangj
- */
-
 #include <stdio.h>
 #include <string.h>
 #include "rom.h"
 #include "uart_ops.h"
 #include "Stubs.h"
+#include "Sysdefines.h"
 #include "Utility.h"
 #include "mdi.h"
-#include "Sysdefines.h"
 #include "dwt_stm32_delay.h"
 
 // Function prototype
@@ -30,14 +23,12 @@ int pcf_init_mdi(void)
 {
 	int status = 0;
 	uint16_t t_tout_confirm_disable_wd = 0;
-		
-	if(mdi_type == PCF7945){
-		// Init sequence for PCF7945
-		status = enter_monitor_mode();
-	}
-	else{
-		// Init sequence for 26A0700
-		status = enter_monitor_mode();
+
+	status = enter_monitor_mode();
+
+
+	if(status != 0){
+		return status;
 	}
 
 	active_MSCL_rising_edge_IT(0);
@@ -88,7 +79,6 @@ int pcf_init_mdi(void)
  */
 int pcf_erase(void)
 {																						
-	unsigned char magic[16] = {0x55, 0x45, 0xE8, 0x92, 0xD6, 0xB1, 0x62, 0x59, 0xFC, 0x8A, 0xC8, 0xF2, 0xD6, 0xE1, 0x4A, 0x35};
 	int status = 0;
 	
 	LL_GPIO_TogglePin(GPIOA,LL_GPIO_PIN_3);
@@ -398,6 +388,70 @@ int program_eerom(void)
 }
 
 
+int program_eerom_wo_spcl_page(void)
+{
+	volatile unsigned char start_page;
+	volatile unsigned short pages;
+	int status = 0;
+
+  if(uart_ops.address == 0){
+		// take address from write_ee_buf cmd if it was not specified in write_ee cmd
+		start_page = chip_data.eeprom_start / EEPROM_PAGE_SIZE;
+	}
+	else{
+		// take address from write_ee cmd if it is not left empty
+		start_page = uart_ops.address / EEPROM_PAGE_SIZE;
+	}
+
+  if(uart_ops.len == 0){
+		// take length from write_ee_buf cmd if it was not specified in write_ee cmd
+		pages = chip_data.eeprom_len / EEPROM_PAGE_SIZE;
+	}
+	else{
+		// take length from write_ee cmd if it is not left empty
+		pages = uart_ops.len / EEPROM_PAGE_SIZE;
+	}
+
+
+	if ((chip_data.eeprom_start + chip_data.eeprom_len) > EEROM_SIZE)
+		return -1;
+
+	pages = (pages > 0) ? pages : 1;				// at least one page must be written. ToDo: Error Message to user
+	for (unsigned int i = 0; i < pages; i++) {
+
+		/*  Treatment for writing special pages */
+		if (((start_page + i) == 0) || (((start_page + i) >= 125) && ((start_page + i) <= 127)))
+		{
+
+			continue;		// exit current for-loop iteration and continue with next iteration
+		}
+		if (i != 0)
+			memcpy(&mdi.buf[0], &mdi.buf[(start_page + i) * EEPROM_PAGE_SIZE], EEPROM_PAGE_SIZE); // ToDo: Abolish copying to mdi.buf. Read directly from chipdata instead
+
+		/* send write eerom command */
+		status |= send_mdi_cmd(C_WR_EEPROM);
+
+		/* send eerom address (page nr) */
+		status |= send_mdi_cmd(start_page + i);
+
+		/* send data */
+		status |= send_data(mdi.buf, EEPROM_PAGE_SIZE);
+
+		/* 4.8ms enough ? */
+		delay_ms(5);
+
+		/* check eecon */
+		status |= recv_data(0x01);
+		if (status != OK && status != PROG_SPCL_PG_FAIL)
+			return status;
+
+		if ((mdi.data[0] & 0xC0) != 0x00)
+			status |= ERR_STATE_RCV;
+	}
+
+	return status;
+}
+
 /**
  * write_eerom_manual
  *
@@ -676,17 +730,42 @@ int read_erom_buf_cks(void)
 }
 
 // Read signature of the EROM
-int read_erom_cks(void){
+int read_pcf_mem_cks(PCF_MEM_CKS_E pcf_mem_cks_type){
 	
 	int status = 0;
 	
 	/* send command read EROM signature */
-	status = send_mdi_cmd(C_SIG_EROM);
+	switch (pcf_mem_cks_type){
+		case EROM_NORM:
+			status = send_mdi_cmd(C_SIG_EROM_NORM);
+			status |= recv_data(1);
+			if(mdi.data[0] != 0x88 || status != OK)
+				return ERR;
+			status |= send_data((unsigned char*)magic,16);
+			status |= recv_data(3);
+			break;
+		case EROM:
+			status = send_mdi_cmd(C_SIG_EROM);
+			status |= recv_data(3);
+			break;
+		case EEROM:
+			status = send_mdi_cmd(C_SIG_EEROM);
+			status |= recv_data(3);
+			break;
+		case ROM:
+			status = send_mdi_cmd(C_SIG_EEROM);
+			status |= recv_data(3);
+			break;
+	}
+
+	if(status == OK){
+		SendBytesUsb(mdi.data, 3, UINT32_MAX);
+		return 0;
+	}
+	else{
+		return status;
+	}
 	
-	status |= recv_data(4);
-	
-	
-	return 0;
 }
 
 // Set device to protected mode

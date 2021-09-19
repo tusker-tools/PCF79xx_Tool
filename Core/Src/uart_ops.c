@@ -1,20 +1,15 @@
-/*
- * uart.c
- *
- * Created: 2018/8/18 15:31:40
- *  Author: wangj
- */
 #include <string.h>
-#include "uart_ops.h" 
+#include "uart_ops.h"
+#include "Sysdefines.h"
+#include "mdi.h"
 #include "rom.h"
 #include "stdlib.h"
-#include "Sysdefines.h"
 #include "Stubs.h"
 #include "stm32f1xx_hal_uart.h"
 #include "Utility.h"
 #include "Usb.h"
 #include "crc.h"
-#include "mdi.h"
+
 
 struct chip_data_s chip_data;
 struct uart_ops_s uart_ops;
@@ -23,12 +18,9 @@ enum MDI_DEVICETYPE_E mdi_type;
 extern UART_HandleTypeDef huart1;
 
 
-/**
- *	byte_revert
- *
- * return reverted data
- * revert byte
- */
+/*******************
+ *	Revert bits in byte x
+*********************/
 static unsigned char byte_revert(unsigned char x)
 {
 	x = (((x & 0xaa) >> 1) | ((x & 0x55) << 1));
@@ -37,12 +29,9 @@ static unsigned char byte_revert(unsigned char x)
 	return((x >> 4) | (x << 4));
 }
 
-/**
- *	revert
- *
- * return -1:error 0:success
- * revert bytes
- */
+/*************************
+ *	Revert all bits in bytes starting at *data
+ **************************/
 int revert(unsigned char *data, unsigned long len)
 {
 	volatile unsigned char reverted = 0;
@@ -128,7 +117,7 @@ int uart_ops_recv(void)
 		if (uart_ops.len > BUF_SIZE)
 			return -1;
 		
-		if (uart_ops.ops == READ_ER_BUF_CKS || uart_ops.ops == CONNECT)
+		if (uart_ops.ops == READ_ER_BUF_CKS || uart_ops.ops == CONNECT || uart_ops.ops == READ_PCF_MEM_CKS )
 			return 0;
 		
 		/*if ((uart_ops.ops != WRITE_ER_BUF) && (uart_ops.ops != WRITE_EE_BUF) && 
@@ -184,14 +173,12 @@ int uart_ops_handler(void)
 		}
 
 		ret = pcf_init_mdi();
-		if (ret < 0){
-			status = CONNECT_ERR;
-		}
-		else if(ret == CONNECT_ERR_PROT_MODE){
-			status = ret;
+
+		if(ret==0){
+			status = SUCCESSFULL;
 		}
 		else{
-			status = SUCCESSFULL;
+			status = ret;
 		}
 		break;
 		
@@ -249,6 +236,22 @@ int uart_ops_handler(void)
 			ret |= program_eerom_manual();
 		}
 		status = ret > 0 ? ret : SUCCESSFULL;
+		break;
+
+	case PROGRAM_EE_WO_SPCL_PAGE:
+		ret = check_eerom_buf();
+		if (ret == 0) {
+			memcpy(mdi.buf, chip_data.eeprom, EEROM_SIZE);
+			ret = revert(mdi.buf, EEROM_SIZE);
+			ret |= program_eerom_wo_spcl_page();
+		}
+		if (ret != OK){
+			UsbCharOut(PROGRAM_EE_ERR);
+			status = ret;
+		}
+		else{
+			status = SUCCESSFULL;
+		}
 		break;
 
 	case VERIFY_ER_BUF:
@@ -311,8 +314,21 @@ int uart_ops_handler(void)
 		status = ret > 0 ? ret : SUCCESSFULL;
 		break;
 	
-	case READ_ER_CKS:
-		ret = read_erom_cks();
+	case READ_PCF_MEM_CKS:
+		switch(uart_ops.len){
+		case 0:
+			ret = read_pcf_mem_cks(EROM_NORM);
+			break;
+		case 1:
+			ret = read_pcf_mem_cks(EROM);
+			break;
+		case 2:
+			ret = read_pcf_mem_cks(EEROM);
+			break;
+		case 3:
+			ret = read_pcf_mem_cks(ROM);
+			break;
+		}
 		status = ret > 0 ? ret : SUCCESSFULL;
 		break;
 	

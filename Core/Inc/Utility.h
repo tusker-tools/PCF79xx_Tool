@@ -2,7 +2,6 @@
 #define Utility_H
 
 #include "stdint.h"
-#include "Sysdefines.h"
 
 void active_MSCL_rising_edge_IT(uint8_t active);
 void active_MSCL_falling_edge_IT(uint8_t active);

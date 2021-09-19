@@ -1,17 +1,16 @@
-// This files contains all the small helper functions for configuring the HW or configurating a set of variables
+// This files contains all the small helper functions for configuring the HW or configuring a set of variables
 
 
 // Includes
 #include "Sysdefines.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_exti.h"
-#include "Stubs.h"
 #include "usb.h"
 
 // Variables definition
-	uint32_t raw_adc = 0;
-	uint8_t adc_offset_hex = 85;
-	uint8_t converted_adc_str[] = { 0 , ',' , 0 , 13}; // Voltage format example: "2" , "," , "7" , [newline]
+uint32_t raw_adc = 0;
+uint8_t adc_offset_hex = 85;
+uint8_t converted_adc_str[] = { 0 , ',' , 0 , 13}; // Voltage format example: "2" , "," , "7" , [newline]
 
 // Externs
 extern ADC_HandleTypeDef hadc1;
@@ -67,7 +66,9 @@ void set_IRQ_and_EXTI_Line_Cmd(uint8_t enable, uint8_t edge){
 
 }
 
-// This function sets signal level of MSDA port
+/**********************************
+ * Set signal level of MSDA output port
+ **********************************/
 void set_MSDA(uint8_t lv_active){
 
 	LL_GPIO_SetPinMode(MSDA_PORT, MSDA_PIN, LL_GPIO_MODE_OUTPUT);
@@ -82,38 +83,28 @@ void set_MSDA(uint8_t lv_active){
 		LL_GPIO_ResetOutputPin(MSDA_PORT, MSDA_PIN);
 	}
 	
-	
 }
-	
-// This function sets signal level of MSDA port
+
+/********************************************************************************
+ * Set signal level of BAT output port. This controls the power supply of the PCF.
+ ********************************************************************************/
 void set_BAT(uint8_t lv_active){
-	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+	LL_GPIO_SetPinMode(BAT_PORT, BAT_PIN, LL_GPIO_MODE_OUTPUT);
+	LL_GPIO_SetPinOutputType(BAT_PORT, BAT_PIN, LL_GPIO_OUTPUT_PUSHPULL);
 	
 	if(lv_active){
-		GPIO_InitStruct.Pull = LL_GPIO_PULL_UP ;
+		LL_GPIO_SetOutputPin(BAT_PORT,BAT_PIN);
 	}
 	else{
-		GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;	
+		LL_GPIO_ResetOutputPin(BAT_PORT,BAT_PIN);
 	}
 	
-	GPIO_InitStruct.Pin = BAT_PIN;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-
-	
-  LL_GPIO_Init(BAT_PORT, &GPIO_InitStruct);
-	
 }
 
-uint8_t MSCL(void){
-	return (uint8_t)((LL_GPIO_ReadInputPort(MSCL_PORT)>>MSCL_PIN_number)&1);
-}
 
-uint8_t MSDA(void){
-	return (uint8_t)((LL_GPIO_ReadInputPort(MSDA_PORT)>>MSDA_PIN_number)&1);
-}
-
+/********************************************************************************
+ * Set signal level of MSCL output port.
+ ********************************************************************************/
 void set_MSCL(uint8_t lv_active){
 	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 	
@@ -129,8 +120,25 @@ void set_MSCL(uint8_t lv_active){
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
 	
-	LL_GPIO_Init(MSCL_PORT, &GPIO_InitStruct);
+  LL_GPIO_Init(MSCL_PORT, &GPIO_InitStruct);
 }
+
+
+/*************************************
+ * Read signal level of MSCL input pin
+ **************************************/
+uint8_t MSCL(void){
+	return (uint8_t)((LL_GPIO_ReadInputPort(MSCL_PORT)>>MSCL_PIN_number)&1);
+}
+
+/*************************************
+ * Read signal level of MSDA input pin
+ **************************************/
+uint8_t MSDA(void){
+	return (uint8_t)((LL_GPIO_ReadInputPort(MSDA_PORT)>>MSDA_PIN_number)&1);
+}
+
+
 
 void set_MSDA_input_pullup(void){
 	//LL_GPIO_InitTypeDef GPIO_InitStruct = {0};

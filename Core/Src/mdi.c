@@ -1,33 +1,41 @@
-/*
- * mdi.c
- *
- * Created: 2018/8/15 16:28:17
- *  Author: wangj
- */ 
+#include "Sysdefines.h"
+#include "mdi.h"
 #include "Utility.h"
 #include "Stubs.h"
 #include "stm32f1xx_hal_adc.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_it.h"
-#include "main.h"
-#include "mdi.h"
 #include "dwt_stm32_delay.h"
 #include "uart_ops.h"
+
 
 extern ADC_HandleTypeDef hadc1;
 extern UART_HandleTypeDef huart1;
 
-//static unsigned int bit = 0; Uncommented for debug reasons. Must be static in final code
+
+/*********************************
+  Data declarations
+ ********************************/
+
 unsigned int bit = 0;
-
-uint8_t debugflag = 0;
-
 static unsigned char data = 0;
+
+/* magic number used as security key for erase and EROM_CKS_NORM cmd */
+const unsigned char magic[16] = {0x55, 0x45, 0xE8, 0x92, 0xD6, 0xB1, 0x62, 0x59, 0xFC, 0x8A, 0xC8, 0xF2, 0xD6, 0xE1, 0x4A, 0x35};
+
+struct mdi_data_s mdi = {.dir = RECV, .status = IDLE};
+
+/* debug data */
 volatile uint8_t test = 255;
 volatile unsigned long nr_aufruf = 0;
 volatile unsigned long c_nr_aufruf = UINT32_MAX;
+uint8_t debugflag = 0;
 
-struct mdi_data_s mdi = {.dir = RECV, .status = IDLE};
+
+
+/*********************************
+  Function declarations
+ ********************************/
 
 /**
  * wait_ops_done
@@ -78,7 +86,7 @@ __inline static int wait_mscl_low(void)
 {
 	unsigned long timeout = 0;
 	
-	while(pio_get(PIOA, PIO_TYPE_PIO_INPUT, PIO_PA15) == 1) {
+	while(MSCL() == 1) {
 		delay_us(1);
 		if (++timeout >= TIMEOUT_MSCL_LOW)
 			return -1;
@@ -110,12 +118,10 @@ int enter_monitor_mode(void) // // ToDo: Catch error case: Device is not connect
 	set_BAT(0); set_MSDA(0);
 	delay_ms(100);
 		
-	/* electrical config for SCL pin */
-	// PCF7945C05
+	/* electrical config for MSCL pin */
 	if(mdi_type == PCF7945){
 		set_MSCL_input_floating();
 	}
-	// 26A0700
 	else{
 		set_MSCL_input_pulldown();
 	}	
@@ -124,27 +130,30 @@ int enter_monitor_mode(void) // // ToDo: Catch error case: Device is not connect
 	set_BAT(1);
 	LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_3);		// TestPoint
 	
-	// PCF7945C05
-	if(mdi_type == 1){
+
+	if(mdi_type == PCF7945){
 		delay_us(T_DLY_SDA_HIGH_AFT_PON);
 		set_MSDA(1);
 	}
-	// 26A0700
 	else{
 		if (wait_mscl_high() < 0){
 			return -1;
 		}
 	}	
 				
-	delay_us(200);
-
+	delay_us(T_DLY_SDA_LOW_AFT_SDA_HIGH);
 	
+	/* If MSCL is not at high level, PCF seems not connected */
+	if(MSCL() != 1){
+		return CONNECT_ERR;
+	}
+
 	if (wait_mscl_low() < 0)		// Wait PCF setting mscl low, right after master must select internal or external mdi mode
-		return -1;
+		return CONNECT_ERR_PROT_MODE;
 
 	
 	// PCF7945C05
-	if(mdi_type == 1){
+	if(mdi_type == PCF7945){
 		set_MSDA(0);
 		delay_us(8);
 		set_MSDA(1);
@@ -250,9 +259,9 @@ static int send_byte(unsigned char *data)
 	/* send the first bit */
 	if (bit == 0) {
 		if ((*data & 0x01) != 0)
-			pio_set(PIOB, PIO_PB26);
+			set_MSDA(1);
 		else
-			pio_clear(PIOB, PIO_PB26);
+			set_MSDA(0);
 	}
 	
 	
@@ -262,9 +271,9 @@ static int send_byte(unsigned char *data)
 	/* send the other bits */
 	if (bit < (MDI_SND_BITS - 1)) {
 		if ((*data >> (bit + 1) & 0x01) != 0)
-			pio_set(PIOB, PIO_PB26);
+			set_MSDA(1);
 		else
-			pio_clear(PIOB, PIO_PB26);
+			set_MSDA(0);
 	}
 	
 	/* check if one byte sent */
