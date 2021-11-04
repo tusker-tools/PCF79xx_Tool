@@ -1,9 +1,11 @@
 # PCF79xx_Tool
 This project provides a STM32 based programmer for programming PCF79xx automotive key transponder chips over the custom monitor- and download interface (mdi).
-The PCF79xx_Tool enumerates itself as serial port. It can either be controlled by later described commands over a serial terminal, or over a GUI offered by an other github project (which is yet under development)
+The PCF79xx_Tool enumerates itself as serial port. It can either be controlled by later described commands over a serial terminal, or over a GUI offered by an other github project (which is yet under development).
 
-## Supported and tested PCF79xx chips:
-- PCF7945C05 (BMW CAS3 key, 5WK49125)
+The project base originates from the github project https://github.com/w01230/PCF7953.
+
+## Supported PCF79xx chips:
+- PCF7945C05 (BMW CAS3 key, 5WK49125) --> Tested ok!
 - 26A0700 (BMW CAS3 china key)
 
 ## Hardware:
@@ -43,11 +45,20 @@ We want to program a hex file with 8kB size to the EROM beginning at adress 0. I
 10. Check if the data has correctly been written to PCF by reading the EROM. Send 5 bytes "0D 00 00 00 02" to the tool.
 11. The tool reads the PCF and dumps its content (8192 bytes) to the serial console, followed by confirmation byte "06". This 8192 bytes should be equal to what has been programmed.
 
+## License
+- The project itself is licensed under the MIT license
+- 
+
 ## Further Development:
-- [ ] Bootloader for updating the firmware via USB
+- [ ] Bootloader for updating the firmware via USB (USB Mass Storage Device)
 - [ ] Test and add support for other PCF79xx type transponders
+- [ ] Investigate the missing part for making a programmed PCF7945C05 (BMW CAS3 5WK49125 Key) working
 
 ## FAQ:
+**Q:** &nbsp; I reprogrammed the EEROM and EROM of an used 5WK49125 Key for BMW CAS3, but afterwards the Key is not acessible with Hitag RFID Programmer!<br>
+**A:** &nbsp; Unfortunately, it is not yet possible to produce a working key. It seems that something is missing in the programming procedure. If you have a commercial PCF flash tool, it would be great if you provide a logica analyzer capture of the programming procedure, so the missing part could be found.
+
+
 **Q:** &nbsp; When I read out the EEROM of the PCF after programming, there are still some bytes which are different from the binary I programmed!<br>
 **A:** &nbsp;Yes, that's a normal behavior. The PCF has special EEROM pages which are read-only. E.g. Page 1 (contains the device ID), Page 126, 127 (ony byte 0 and 1 read-only).
 
