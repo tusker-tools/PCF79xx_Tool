@@ -45,9 +45,9 @@ We want to program a hex file with 8kB size to the EROM beginning at adress 0. I
 10. Check if the data has correctly been written to PCF by reading the EROM. Send 5 bytes "0D 00 00 00 02" to the tool.
 11. The tool reads the PCF and dumps its content (8192 bytes) to the serial console, followed by confirmation byte "06". This 8192 bytes should be equal to what has been programmed.
 
-## License
-- The project itself is licensed under the MIT license
-- 
+## Used License
+- The project itself (all files which don't have a license specified in the header) is licensed under the MIT license
+- Driver files from ST's Standard Peripheral- CMSIS- and HAL library are licensed under the BSD 3-Clause license by ST. The license text is given in the header of these files
 
 ## Further Development:
 - [ ] Bootloader for updating the firmware via USB (USB Mass Storage Device)
@@ -56,7 +56,7 @@ We want to program a hex file with 8kB size to the EROM beginning at adress 0. I
 
 ## FAQ:
 **Q:** &nbsp; I reprogrammed the EEROM and EROM of an used 5WK49125 Key for BMW CAS3, but afterwards the Key is not acessible with Hitag RFID Programmer!<br>
-**A:** &nbsp; Unfortunately, it is not yet possible to produce a working key. It seems that something is missing in the programming procedure. If you have a commercial PCF flash tool, it would be great if you provide a logica analyzer capture of the programming procedure, so the missing part could be found.
+**A:** &nbsp; Unfortunately, it is not yet possible to produce a working key. It seems that something is missing in the programming procedure. If you have a commercial PCF flash tool, it would be great if you provide a logic analyzer capture of the programming procedure, so the missing part could be identified and implemented.
 
 
 **Q:** &nbsp; When I read out the EEROM of the PCF after programming, there are still some bytes which are different from the binary I programmed!<br>
