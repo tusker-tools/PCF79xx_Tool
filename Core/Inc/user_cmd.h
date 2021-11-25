@@ -1,15 +1,9 @@
-/*
- * uart.h
- *
- * Created: 2018/8/18 15:48:37
- *  Author: wangj
- */ 
-#ifndef UART_OPS_H
-#define UART_OPS_H
+#ifndef USER_CMD_H
+#define USER_CMD_H
 
 #include "stdlib.h"
 
-enum UART_OP_E {
+enum USER_OPS_E {
 	CONNECT = 0x09,
 	ERASE = 0x0A,
 	WRITE_ER_BUF = 0x2B,
@@ -33,7 +27,7 @@ enum UART_OP_E {
 	PROTECT = 0x0E
 };
 
-enum UART_STATUS_E {
+enum USER_CMD_STATUS_E {
 	SUCCESSFULL = 0x06,
 	CONNECT_ERR_PROT_MODE = 0x91,
 	CONNECT_ERR = 0x90,
@@ -56,13 +50,32 @@ enum UART_STATUS_E {
 	PROTECT_ERR = 0x0E
 };
 
+
+struct user_cmd_s {
+	unsigned char ops;			  		// operations
+	union {
+		unsigned char addresses[2];		// address
+		unsigned short address;
+	};
+	unsigned char *data;	      		// buffer
+	union {						  		// data length
+		unsigned char lens[2];
+		unsigned short len;
+	};
+	union {
+		unsigned char crc32s[4];		// crc32
+		unsigned long crc32;
+	};
+	unsigned char status;		  		// status
+};
+
+
 extern struct chip_data_s chip_data;
-extern struct uart_ops_s uart_ops;
+extern struct user_cmd_s user_op;
 extern enum MDI_DEVICETYPE_E mdi_type;
 
-int revert(unsigned char *data, unsigned long len);
-unsigned long crc32_caculate(const unsigned char *data, size_t len);
-int uart_ops_recv(void);
-int uart_ops_handler(void);
+
+int ui_cmd_recv(void);
+int ui_cmd_handler(void);
 
 #endif

@@ -26,11 +26,11 @@ enum MDI_DIR_E {
 };
 
 enum MDI_STATUS_E {
-	INIT 						= 0x09,
-	IDLE 						= 0x0A,
-	BUSY 						= 0x0B,
-	WAIT_LAST_PULSE 			= 0x0C,
-	DONE 						= 0x0D
+	INIT 				= 0x09,
+	IDLE 				= 0x0A,
+	BUSY 				= 0x0B,
+	WAIT_LAST_PULSE 	= 0x0C,
+	DONE 				= 0x0D
 };
 
 enum MDI_COMMAND_E {
@@ -60,7 +60,7 @@ enum MDI_COMMAND_E {
 struct mdi_data_s {
 	enum MDI_DEVICETYPE_E type;		// type of mdi device
 	enum MDI_DIR_E dir;			  // mdi transmission direction
-	enum MDI_STATUS_E status;		  // mdi status ToDo: Change to enum type
+	enum MDI_STATUS_E status;		  // mdi status
 	union {
 		struct {
 			enum MDI_COMMAND_E command;	      // mdi command
@@ -75,12 +75,11 @@ struct mdi_data_s {
 
 extern struct mdi_data_s mdi;
 
-
-
-// Magic string needed for deleting protected PCF or read EROM_NORM operation
+/* Magic string needed for deleting protected PCF or read EROM_NORM operation */
 extern const unsigned char magic[16];
 
-void data_handler(void);
+/* Function declarations */
+void exti_handler(void);
 int recv_data(unsigned long len);
 int send_data(unsigned char *data_ptr, unsigned long len);
 int send_mdi_cmd(unsigned char byte);

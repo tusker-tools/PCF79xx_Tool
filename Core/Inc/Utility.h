@@ -20,6 +20,7 @@ void set_MSCL_input_pullup(void);
 status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout);
 void SendBytesUsb(uint8_t Data[], uint16_t bytes, uint32_t tout);
 void revert_bytes(uint8_t *Data, uint8_t length);
+int revert(unsigned char *data, unsigned long len);
 
 /************BEGIN Section for Test Instrumentation ********************/
 // Prototype for testing function

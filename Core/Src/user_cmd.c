@@ -1,90 +1,22 @@
 #include <string.h>
-#include "uart_ops.h"
+#include "user_cmd.h"
 #include "Sysdefines.h"
 #include "mdi.h"
 #include "rom.h"
 #include "stdlib.h"
 #include "Stubs.h"
-#include "stm32f1xx_hal_uart.h"
 #include "Utility.h"
 #include "Usb.h"
 #include "crc.h"
 
 
 struct chip_data_s chip_data;
-struct uart_ops_s uart_ops;
+struct user_cmd_s user_op;
 enum MDI_DEVICETYPE_E mdi_type;
 
-extern UART_HandleTypeDef huart1;
 
 
-/*******************
- *	Revert bits in byte x
-*********************/
-static unsigned char byte_revert(unsigned char x)
-{
-	x = (((x & 0xaa) >> 1) | ((x & 0x55) << 1));
-	x = (((x & 0xcc) >> 2) | ((x & 0x33) << 2));
-	
-	return((x >> 4) | (x << 4));
-}
 
-/*************************
- *	Revert all bits in bytes starting at *data
- **************************/
-int revert(unsigned char *data, unsigned long len)
-{
-	volatile unsigned char reverted = 0;
-	
-	if (data == NULL)
-		return -1;
-		
-	for (unsigned int i = 0; i < len; i++) {
-		  reverted = byte_revert(data[i]);
-		  data[i] = reverted;
-	}
-	
-	return 0;
-}
-
-/**
- *	check_erom_buf
- *
- * return -1:error 0:success
- * check erom buf
- */
-static int check_erom_buf(void)
-{
-	unsigned long crc32 = 0;
-	
-	if (chip_data.erom_crc32 == 0x00000000)
-		return 0;
-	
-	crc32 = crc32_caculate(chip_data.erom, chip_data.erom_len);
-	if (crc32 != chip_data.erom_crc32)
-		return -1;
-		
-	return 0;
-}
-/**
- *	int check_eerom_buf
- *
- * return -1:error 0:success
- * check eerom buf
- */
-static int check_eerom_buf(void)
-{
-	unsigned long crc32 = 0;
-
-	if (chip_data.eeprom_crc32 == 0x00000000)
-		return 0;
-		
-	crc32 = crc32_caculate(chip_data.eeprom, chip_data.eeprom_len);
-	if (crc32 != chip_data.eeprom_crc32)
-		return -1;
-	
-	return 0;
-}
 
 /**
  * uart_ops_recv
@@ -93,31 +25,31 @@ static int check_eerom_buf(void)
  * read ops data from uart
  */
 
-int uart_ops_recv(void)
+int ui_cmd_recv(void)
 {
 	volatile status_code_t status = STATUS_OK;
 	unsigned int crc32 = 0;
 	
 	/* store data to mdi buf */
-	uart_ops.data = mdi.buf;
+	user_op.data = mdi.buf;
 	
 	
-	status = RcvBytesUSB(&uart_ops.ops,1,UINT32_MAX);
+	status = RcvBytesUSB(&user_op.ops,1,UINT32_MAX);
 
-	status = RcvBytesUSB(uart_ops.addresses,2,100);
+	status = RcvBytesUSB(user_op.addresses,2,100);
 	
 	if (status == ERR_TIMEOUT)
 		return -1;
 
-	status = RcvBytesUSB(uart_ops.lens,2, 100);
+	status = RcvBytesUSB(user_op.lens,2, 100);
 	if (status == ERR_TIMEOUT)
 		return -1;
 	
-	if (uart_ops.len > 0) {
-		if (uart_ops.len > BUF_SIZE)
+	if (user_op.len > 0) {
+		if (user_op.len > BUF_SIZE)
 			return -1;
 		
-		if (uart_ops.ops == READ_ER_BUF_CKS || uart_ops.ops == CONNECT || uart_ops.ops == READ_PCF_MEM_CKS )
+		if (user_op.ops == READ_ER_BUF_CKS || user_op.ops == CONNECT || user_op.ops == READ_PCF_MEM_CKS )
 			return 0;
 		
 		/*if ((uart_ops.ops != WRITE_ER_BUF) && (uart_ops.ops != WRITE_EE_BUF) && 
@@ -126,23 +58,23 @@ int uart_ops_recv(void)
 		*/
 		
 		// Receive Data + CKS
-		if ((uart_ops.ops == WRITE_ER_BUF) || (uart_ops.ops == WRITE_EE_BUF))
+		if ((user_op.ops == WRITE_ER_BUF) || (user_op.ops == WRITE_EE_BUF))
 		{
-			status = RcvBytesUSB(uart_ops.data,uart_ops.len,1000);
+			status = RcvBytesUSB(user_op.data,user_op.len,1000);
 			
 			if (status == ERR_TIMEOUT)
 				return -1;
 			
-			status = RcvBytesUSB(uart_ops.crc32s,4,100);
+			status = RcvBytesUSB(user_op.crc32s,4,100);
 			
 			if (status == ERR_TIMEOUT)
 				return -1;		
 			
-			if (uart_ops.crc32 == 0x00000000)
+			if (user_op.crc32 == 0x00000000)
 				return 0;
 			
-			crc32 = crc32_caculate(uart_ops.data, uart_ops.len);
-			if (crc32 != uart_ops.crc32)
+			crc32 = crc32_caculate(user_op.data, user_op.len);
+			if (crc32 != user_op.crc32)
 				return -1;
 		}
 	}
@@ -157,15 +89,15 @@ int uart_ops_recv(void)
  * handle uart ops
  */
 
-int uart_ops_handler(void)
+int ui_cmd_handler(void)
 {
-	volatile unsigned char ops = uart_ops.ops;
-	volatile enum UART_STATUS_E status = SUCCESSFULL;
+	volatile unsigned char ops = user_op.ops;
+	volatile enum USER_CMD_STATUS_E status = SUCCESSFULL;
 	int ret = 0;
 	
 	switch(ops)	{
 	case CONNECT:
-		if(uart_ops.len == 1){
+		if(user_op.len == 1){
 			mdi_type = PCF7945;
 		}
 		else{
@@ -295,7 +227,7 @@ int uart_ops_handler(void)
 		break;
 		
 	case READ_EE:
-		revert(uart_ops.data, uart_ops.len);
+		revert(user_op.data, user_op.len);
 		ret = read_eerom();
 		if(ret == 0){
 			status = SUCCESSFULL;
@@ -315,7 +247,7 @@ int uart_ops_handler(void)
 		break;
 	
 	case READ_PCF_MEM_CKS:
-		switch(uart_ops.len){
+		switch(user_op.len){
 		case 0:
 			ret = read_pcf_mem_cks(EROM_NORM);
 			break;

@@ -7,69 +7,80 @@
 #include "stm32f1xx_ll_exti.h"
 #include "usb.h"
 
-// Variables definition
+/* Variables definition */
 uint32_t raw_adc = 0;
 uint8_t adc_offset_hex = 85;
 uint8_t converted_adc_str[] = { 0 , ',' , 0 , 13}; // Voltage format example: "2" , "," , "7" , [newline]
 
-// Externs
-extern ADC_HandleTypeDef hadc1;
-extern UART_HandleTypeDef huart1;
+/* Enum definitions */
+enum edges{
+	rising = 1,
+	falling = 0
+};
+
 
 // Function prototypes
 void set_IRQ_and_EXTI_Line_Cmd(uint8_t enable, uint8_t edge);
 
-// this function activates or deactivates a rising edge pin interrupt
-void active_MSCL_rising_edge_IT(uint8_t active){
-	
-  set_IRQ_and_EXTI_Line_Cmd(active,1);
-
+/*
+ *  Activate / deactivate external interrupt on rising edge of MSCL pin level.
+ *  Other edge interrupts are automatically deactivated.
+ */
+void active_MSCL_rising_edge_IT(uint8_t active)
+{
+	set_IRQ_and_EXTI_Line_Cmd(active,rising);
 }
 
-void active_MSCL_falling_edge_IT(uint8_t active){
-	
-	set_IRQ_and_EXTI_Line_Cmd(active,0);
-	
+/*
+ *  Activate / deactivate external interrupt on falling edge of MSCL pin level.
+ *  Other edge interrupts are automatically deactivated.
+ */
+void active_MSCL_falling_edge_IT(uint8_t active)
+{
+	set_IRQ_and_EXTI_Line_Cmd(active,falling);
 }
 
 
-void set_IRQ_and_EXTI_Line_Cmd(uint8_t enable, uint8_t edge){
-	/* Configure Interrupt	*/
-	
-	// Set Edge of EXTI
-	// Rising edge
-  if(edge){
-		LL_EXTI_DisableFallingTrig_0_31(LL_EXTI_LINE_14);
-		LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_14);
+/*
+ * Configure external interrupt edge level and activateion status
+ */
+void set_IRQ_and_EXTI_Line_Cmd(uint8_t enable, uint8_t edge)
+{
+	/* Set Edge on which an external interrupt is issued */
+	if(edge==rising){
+	  /* Rising edge */
+	  LL_EXTI_DisableFallingTrig_0_31(LL_EXTI_LINE_14);
+	  LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_14);
 	}
-	// Falling edge
 	else{
-		LL_EXTI_DisableRisingTrig_0_31(LL_EXTI_LINE_14);
-		LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_14);
+	  //* Falling edge */
+	  LL_EXTI_DisableRisingTrig_0_31(LL_EXTI_LINE_14);
+	  LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_14);
 	}
 	
 	
-	// Activate or deactivate line
-  if(enable){
-		
-		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_14);
+	/* Set activation status */
+	if(enable){
+		/* Activate Interrupt */
+		LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_14);	// Clear flag of eventually pending interrupt
 		(void) EXTI->PR;							// dummy read access in order to assure EXTI->PR is reset when interrupt is activated
 		LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_14);
 		NVIC_ClearPendingIRQ(EXTI15_10_IRQn);
 		NVIC_EnableIRQ(EXTI15_10_IRQn);
 	}
 	else{
-	
+		/* Deactivate Interrupt */
 		LL_EXTI_DisableIT_0_31(LL_EXTI_LINE_14);
 		NVIC_DisableIRQ(EXTI15_10_IRQn);
 	}
 
 }
 
-/**********************************
+/*
  * Set signal level of MSDA output port
- **********************************/
-void set_MSDA(uint8_t lv_active){
+ */
+void set_MSDA(uint8_t lv_active)
+{
 
 	LL_GPIO_SetPinMode(MSDA_PORT, MSDA_PIN, LL_GPIO_MODE_OUTPUT);
 	LL_GPIO_SetPinOutputType(MSDA_PORT, MSDA_PIN, LL_GPIO_OUTPUT_PUSHPULL);
@@ -85,10 +96,11 @@ void set_MSDA(uint8_t lv_active){
 	
 }
 
-/********************************************************************************
+/*
  * Set signal level of BAT output port. This controls the power supply of the PCF.
- ********************************************************************************/
-void set_BAT(uint8_t lv_active){
+ */
+void set_BAT(uint8_t lv_active)
+{
 	LL_GPIO_SetPinMode(BAT_PORT, BAT_PIN, LL_GPIO_MODE_OUTPUT);
 	LL_GPIO_SetPinOutputType(BAT_PORT, BAT_PIN, LL_GPIO_OUTPUT_PUSHPULL);
 	
@@ -101,95 +113,86 @@ void set_BAT(uint8_t lv_active){
 	
 }
 
-
-/********************************************************************************
+/*
  * Set signal level of MSCL output port.
- ********************************************************************************/
-void set_MSCL(uint8_t lv_active){
-	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-	
+ */
+void set_MSCL(uint8_t lv_active)
+{
 	if(lv_active){
-		GPIO_InitStruct.Pull = LL_GPIO_PULL_UP ;
+		LL_GPIO_SetOutputPin(MSCL_PORT, MSCL_PIN);
 	}
 	else{
-		GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;	
+		LL_GPIO_ResetOutputPin(MSCL_PORT, MSCL_PIN);
 	}
-	
-	GPIO_InitStruct.Pin = MSCL_PIN;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-	
-  LL_GPIO_Init(MSCL_PORT, &GPIO_InitStruct);
 }
 
 
-/*************************************
+/*
  * Read signal level of MSCL input pin
- **************************************/
-uint8_t MSCL(void){
+ */
+uint8_t MSCL(void)
+{
 	return (uint8_t)((LL_GPIO_ReadInputPort(MSCL_PORT)>>MSCL_PIN_number)&1);
 }
 
-/*************************************
+/*
  * Read signal level of MSDA input pin
- **************************************/
-uint8_t MSDA(void){
+ */
+uint8_t MSDA(void)
+{
 	return (uint8_t)((LL_GPIO_ReadInputPort(MSDA_PORT)>>MSDA_PIN_number)&1);
 }
 
 
-
-void set_MSDA_input_pullup(void){
-	//LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-	
-	//GPIO_InitStruct.Pin = LL_GPIO_PIN_13;
-  //GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  //GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+/*
+ * Set electrical configuration of MSDA pin to "input with pullup"
+ */
+void set_MSDA_input_pullup(void)
+{
 	LL_GPIO_SetPinMode(MSDA_PORT, MSDA_PIN, LL_GPIO_MODE_INPUT);
 	LL_GPIO_SetPinPull(MSDA_PORT, MSDA_PIN, LL_GPIO_PULL_UP);
- // LL_GPIO_Init(MSDA_PORT, &GPIO_InitStruct);
 }
 
-void set_MSDA_input_floating(void){
-	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-	
-	GPIO_InitStruct.Pin = LL_GPIO_PIN_13;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-	
-  LL_GPIO_Init(MSDA_PORT, &GPIO_InitStruct);
+/*
+ * Set electrical configuration of MSDA pin to "input floating"
+ */
+void set_MSDA_input_floating(void)
+{
+	LL_GPIO_SetPinMode(MSDA_PORT, MSDA_PIN, LL_GPIO_MODE_FLOATING);
 }
 
-void set_MSDA_output_pushpull(void){
-	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-	
-	GPIO_InitStruct.Pin = LL_GPIO_PIN_13;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-	
-  LL_GPIO_Init(MSDA_PORT, &GPIO_InitStruct);
+/*
+ * Set electrical configuration of MSDA pin to "output" with push-pull driver connected
+ */
+void set_MSDA_output_pushpull(void)
+{
+	LL_GPIO_SetPinMode(MSDA_PORT, MSDA_PIN, LL_GPIO_MODE_OUTPUT);
+	LL_GPIO_SetPinOutputType(MSDA_PORT, MSDA_PIN, LL_GPIO_OUTPUT_PUSHPULL);
 }
 
 void set_MSCL_input_floating(void){
-	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-	
-	GPIO_InitStruct.Pin = MSCL_PIN;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-	
-  LL_GPIO_Init(MSCL_PORT, &GPIO_InitStruct);
+	LL_GPIO_SetPinMode(MSCL_PORT, MSCL_PIN, LL_GPIO_MODE_FLOATING);
 }
 
+/*
+ * Set electrical config of MSCL pin to "input with pulldown"
+ */
 void set_MSCL_input_pulldown(void){
 	LL_GPIO_SetPinMode(MSCL_PORT, MSCL_PIN, LL_GPIO_MODE_INPUT);
 	LL_GPIO_SetPinPull(MSCL_PORT, MSCL_PIN, LL_GPIO_PULL_DOWN);
 }
 
+/*
+ * Set electrical config of MSCL pin to "input with pullup"
+ */
 void set_MSCL_input_pullup(void){
 	LL_GPIO_SetPinMode(MSCL_PORT, MSCL_PIN, LL_GPIO_MODE_INPUT);
 	LL_GPIO_SetPinPull(MSCL_PORT, MSCL_PIN, LL_GPIO_PULL_UP);
 }
 
-
-// Subtracts two u32 numbers and limits (saturatest) result to 0
+/*
+ * Subtracts two u32 numbers and limits result's lower limit to 0
+ */
 uint32_t u32_sat_sub_u32_u32(uint32_t sub1, uint32_t sub2){
 		uint32_t res;
 		res = sub1 - sub2;
@@ -202,9 +205,71 @@ uint32_t u32_sat_sub_u32_u32(uint32_t sub1, uint32_t sub2){
 }
 
 
-/**********************
-// This function receives a number of PRM_bytes from USB buffer and writes it to PRM_*pdata. If data is not available in PRM_tout, it returns
-***********************/
+/*
+ * Revert bits in byte x
+ */
+static unsigned char byte_revert(unsigned char x)
+{
+	x = (((x & 0xaa) >> 1) | ((x & 0x55) << 1));
+	x = (((x & 0xcc) >> 2) | ((x & 0x33) << 2));
+
+	return((x >> 4) | (x << 4));
+}
+
+/*
+ *	Revert all bits in bytes starting at *data
+ */
+int revert(unsigned char *data, unsigned long len)
+{
+	volatile uint32_t reverted = 0;
+
+	if (data == NULL)
+		return -1;
+
+	for (unsigned int i = 0; i < len; i++)
+	{
+		#if ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+	     	 (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+			 (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    )
+
+			/* use reverse bits hardware functionality */
+			reverted = __RBIT((uint32_t)data[i]);
+			data[i] = (unsigned char)(reverted>>24);
+		#else
+			/* else use reverse bits by discrete function */
+			data[i] = byte_revert(data[i]);
+		#endif
+	}
+	return 0;
+}
+
+/*
+ * Revert byte order within an amount of bytes
+ */
+void revert_bytes(uint8_t *Data, uint8_t length)
+{
+	uint8_t copy[length];
+
+	// save original data
+	for(uint32_t i=0; i<length; i++)
+	{
+			copy[i] = Data[i];
+	}
+
+	for(uint32_t i=0; i<length; i++)
+	{
+		Data[length-i-1] = copy[i];
+	}
+}
+
+
+
+
+
+/*
+ *  Receive a number of bytes from USB buffer and writes it to Array "Data". If data is not available within tout_ms milliseconds,
+ *  function returns corresponding status code. If tout_ms = UINT32_MAX, then the function will never time out.
+ */
 status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout_ms){
 	
 	// All times given as CPU clock cycles
@@ -254,7 +319,12 @@ status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout_ms){
 	return ERR_ABORTED;
 }
 
-
+/*
+ * Sends an array of bytes
+ * Data: Adress of the first bite
+ * bytes: Number of bytes
+ * tout: Timeout clock cycles
+ */
 void SendBytesUsb(uint8_t Data[], uint16_t bytes, uint32_t tout)
 {
 	uint16_t bytes_sent = 0;
@@ -275,34 +345,3 @@ void SendBytesUsb(uint8_t Data[], uint16_t bytes, uint32_t tout)
 		
 	}
 }
-
-// This function reverts the order of single bytes 
-void revert_bytes(uint8_t *Data, uint8_t length)
-{
-	uint8_t copy[length];
-	
-	// save original data
-	for(uint32_t i=0; i<length; i++)
-	{
-			copy[i] = Data[i];
-	}
-	
-	for(uint32_t i=0; i<length; i++)
-	{
-		Data[length-i-1] = copy[i];
-	}
-}
-
-
-
-/************BEGIN Section for Test Instrumentation ********************/
-
-// For testing
-void GetAdcValue_convert_and_print_serial(void){
-		raw_adc = HAL_ADC_GetValue(&hadc1);
-		converted_adc_str[0] = (raw_adc + adc_offset_hex) / 1241 + '0';		// 3,3 / 4095 = 1241 
-		converted_adc_str[2] = (((raw_adc + adc_offset_hex) % 1241) / 124) + '0' ;
-		//HAL_UART_Transmit(&huart1,(uint8_t*)&converted_adc_str,sizeof(converted_adc_str),UINT32_MAX);
-}
-	
-/**************** END Section Test Instrumentation ********************/

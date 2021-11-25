@@ -4,15 +4,12 @@
 #include "Sysdefines.h"
 #include "Utility.h"
 
-#if USE_CRC32_HW == 1
+#if USE_CRC32_HW == 1		// Use STM32F1 CRC Hardware
 
-uint32_t revbit(uint32_t data)
-{
-  __asm("rbit %0,%0 \n"
-		  :"+r" (data));
-  return data;
-};
 
+/*
+ * Calculate CRC32 of memory region. This function uses STM32's CRC hardware.
+ */
 unsigned long crc32_caculate(const unsigned char *data, size_t len)
 {
   uint32_t i, j;
@@ -35,13 +32,15 @@ unsigned long crc32_caculate(const unsigned char *data, size_t len)
   {
     temp.ui32=*((uint32_t *)data);
     data += 4;
-    temp.ui32=revbit(temp.ui32);//reverse the bit order of input data
+    /* reverse the bit order of input data. Use HW command */
+    temp.ui32=__RBIT(temp.ui32);
     CRC->DR=temp.ui32;
   }
  
   temp.ui32=CRC->DR;
- 
-  temp.ui32=revbit(temp.ui32);//reverse the bit order of output data
+
+  /* reverse the bit order of input data. Use HW command */
+  temp.ui32=__RBIT(temp.ui32);
  
   i = len & 3;
  
@@ -118,10 +117,8 @@ const unsigned long crc32_tab[] = {
 
  
 /*
- * crc32
- *
- *
- * caculate crc32 of the recv data
+ * Calculate CRC32 of memory region. This function variant works without
+ * availability of a hardware CRC unit.
  */
 unsigned long crc32_caculate(const unsigned char *data, size_t len)
 {

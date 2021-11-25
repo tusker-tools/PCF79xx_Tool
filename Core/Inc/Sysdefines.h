@@ -61,51 +61,8 @@ Configure Pins of STM32
 
 
 /*************************
-Definition of Enums 
+Definition of common used Enums
 ***************************/
-
-
-/*
-// Attention: Defined also in mdi.h
-enum MDI_DEVICETYPE_E {
-	F26A0700 						= 0x00,
-	PCF7945 						= 0x0A
-};
-*/
-
-
-
-struct chip_data_s {
-	unsigned short erom_start;	  // erom start address
-	unsigned short eeprom_start;  // eeprom start address
-	unsigned short erom_len;	  // eeprom data length
-	unsigned short eeprom_len;	  // eeprom data length
-	unsigned char erom[8224];     // data 8K + 32Bdummy
-	unsigned char eeprom[1056];   // data 1K + 32Bdummy
-	unsigned long erom_crc32;     // crc32 of erom
-	unsigned long eeprom_crc32;	  // crc32 of eeprom
-};
-
-struct uart_ops_s {
-	unsigned char ops;			  // operations
-	union {
-		unsigned char addresses[2];	  // address
-		unsigned short address;
-	};
-	unsigned char *data;	      // buffer
-	union {						  // data length
-		unsigned char lens[2];	 
-		unsigned short len;
-	};
-	union {
-		unsigned char crc32s[4];		  // crc32
-		unsigned long crc32;
-	};
-	unsigned char status;		  // status
-};
-
-
-
 
 enum Logic_Level {
 	LOW = 0,

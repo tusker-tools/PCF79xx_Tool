@@ -62,7 +62,7 @@ uint8_t decreasing_counter;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern TIM_HandleTypeDef htim1;
+
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -204,60 +204,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM1 capture compare interrupt.
-  */
-void TIM1_CC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
-	
-
-	
-	if (TIM1->SR & TIM_SR_CC1IF){
-		//HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,GPIO_PIN_SET);
-		
-				temp=TIM1->CCR2;
-		
-		// Toggle counter direction
-		if(temp == 0xFFB0){
-				decreasing_counter=1;
-		}
-		else if(temp == 1){
-			 decreasing_counter=0;
-		}
-		
-		// Counter
-		if(!decreasing_counter){
-			// Increasing
-			if(temp > 0xFFB0-inc){
-				temp = 0xFFB0;
-			} 
-			else{
-				temp=temp+inc;
-			}
-		}
-		else{
-			// decreasing
-			if(temp <= 0x01+inc){
-				temp = 0x01;
-			} 
-			else{
-				temp=temp-inc;
-			}
-		}
-		TIM1->CCR2 = temp;	
-		
-		
-	}
-	if (TIM1->SR & TIM_SR_CC2IF){
-		//HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,GPIO_PIN_RESET);
-	}
-  /* USER CODE END TIM1_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
-  /* USER CODE END TIM1_CC_IRQn 1 */
-}
-
-/**
   * @brief This function handles EXTI line[15:10] interrupts.
   */
 void EXTI15_10_IRQHandler(void)
@@ -274,7 +220,7 @@ void EXTI15_10_IRQHandler(void)
 		
     /* USER CODE BEGIN LL_EXTI_LINE_14 */
 
-		data_handler();
+		exti_handler();
 		//EXTI->IMR &= ~EXTI_EMR_MR14_Msk;	// Clear external interrupt mask for MSCL Pin (if it is no already done by data_handler)
 		//set_IRQ_and_EXTI_Line_Cmd(1,LL_EXTI_TRIGGER_FALLING);
 		//LL_GPIO_ResetOutputPin(GPIOA,LL_GPIO_PIN_3); Geht nicht weil vom compiler wegopitimert. Keine Ahnung warum!
