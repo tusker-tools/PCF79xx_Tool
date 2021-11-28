@@ -17,6 +17,7 @@ static unsigned char data = 0;
 /* magic number used as security key for erase and EROM_CKS_NORM cmd */
 const unsigned char magic[16] = {0x55, 0x45, 0xE8, 0x92, 0xD6, 0xB1, 0x62, 0x59, 0xFC, 0x8A, 0xC8, 0xF2, 0xD6, 0xE1, 0x4A, 0x35};
 
+/* Initialize mdi states */
 struct mdi_data_s mdi = {.dir = RECV, .status = IDLE};
 
 /* debug variables */
@@ -94,7 +95,6 @@ __inline static int wait_mscl_low(void)
 int enter_monitor_mode(void)
 {
 	unsigned long timeout = 0;
-	volatile uint8_t debug_ctr = 0xFF;
 	
 	/* Disable PIO controller IRQs. */
 	set_IRQ_and_EXTI_Line_Cmd(0,0);	//DISABLE MSCL interrupt, (falling edge)

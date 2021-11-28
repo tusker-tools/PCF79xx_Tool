@@ -808,6 +808,15 @@ int read_pcf_mem_cks(PCF_MEM_CKS_E pcf_mem_cks_type){
 	
 }
 
+int output_PCF_Tool_SW_Version(void){
+	int status = 0;
+
+	/* Send 3 Bytes of SW Version to UI */
+	SendBytesUsb((uint8_t*)PCF_Tool_SW_Version, 3, UINT32_MAX);
+
+	return status;
+}
+
 /*
  * Set PCF to protected mode
  */

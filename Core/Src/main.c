@@ -54,6 +54,10 @@
 
 /* USER CODE BEGIN PV */
 
+/* Define PCF_Tool Software Version */
+const uint8_t PCF_Tool_SW_Version[3]	=	PCF_TOOL_SW_VERSION;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,9 +81,6 @@ static void MX_GPIO_EXTI_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	/* Initialize mdi states */
-	mdi.dir = RECV;
-	mdi.status = IDLE;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/

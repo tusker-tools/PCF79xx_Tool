@@ -41,6 +41,7 @@ int read_eerom_buf(void);
 int read_eerom(void);
 int read_erom_buf_cks(void);
 int read_pcf_mem_cks(PCF_MEM_CKS_E pcf_mem_cks_type);
+int output_PCF_Tool_SW_Version(void);
 int pcf_protect(void);
 int ee_prog_conf(unsigned char page);
 

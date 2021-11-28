@@ -263,6 +263,11 @@ int ui_cmd_handler(void)
 		}
 		status = ret > 0 ? ret : SUCCESSFULL;
 		break;
+
+	case READ_TOOL_SW_VERSION:
+		ret = output_PCF_Tool_SW_Version();
+		status = ret > 0 ? ret : SUCCESSFULL;
+		break;
 	
 	case PROTECT:
 		ret = pcf_protect();
