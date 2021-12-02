@@ -127,7 +127,7 @@ int enter_monitor_mode(void)
 	{
 		if (wait_mscl_high() < 0)
 		{
-			return -1;
+			return CONNECT_ERR;
 		}
 	}	
 				
@@ -155,6 +155,8 @@ int enter_monitor_mode(void)
 		set_MSDA(1);
 	}	
 	
+	delay_us(50);
+
 	set_MSDA(0);
 	
 	mdi.status = INIT;
