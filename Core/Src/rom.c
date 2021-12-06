@@ -2,7 +2,6 @@
 #include <string.h>
 #include "user_cmd.h"
 #include "rom.h"
-#include "Stubs.h"
 #include "Sysdefines.h"
 #include "Utility.h"
 #include "mdi.h"

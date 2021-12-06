@@ -4,7 +4,6 @@
 #include "mdi.h"
 #include "rom.h"
 #include "stdlib.h"
-#include "Stubs.h"
 #include "Utility.h"
 #include "Usb.h"
 #include "crc.h"

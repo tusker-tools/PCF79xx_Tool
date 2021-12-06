@@ -9,6 +9,20 @@
 uint32_t DWT_Delay_Init(void);
 
 /*
+ * Waits a time specified by parameter µs
+ * Input parameter: us = wait time in microseconds
+ */
+void delay_us(uint32_t us);
+
+/*
+ * Waits a time specified by parameter ms
+ * Input parameter: ms = wait time in milliseconds
+ */
+void delay_ms(uint32_t ms);
+
+
+
+/*
  * Provid a delay (in microseconds) using STM32 DWT unit
  * Hint: Function needs to be defined here in order to "inline" it in other translation units
  */

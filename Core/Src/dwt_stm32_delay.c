@@ -1,4 +1,5 @@
 #include "stm32f1xx_hal.h"
+#include "dwt_stm32_delay.h"
 
 /*
  * Initializes DWT_Clock_Cycle_Count for DWT_Delay_us function
@@ -34,6 +35,22 @@ uint32_t DWT_Delay_Init(void)
  }
 }
 
+/*
+ * Waits a time specified by parameter µs
+ * Input parameter: us = wait time in microseconds
+ */
+void delay_us(uint32_t us)
+{
+	DWT_Delay_us(us);
+}
 
 
+/*
+ * Waits a time specified by parameter ms
+ * Input parameter: ms = wait time in milliseconds
+ */
+void delay_ms(uint32_t ms)
+{
+	DWT_Delay_us(ms*1000);
+}
 

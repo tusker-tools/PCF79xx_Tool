@@ -2,7 +2,6 @@
 #include "Sysdefines.h"
 #include "mdi.h"
 #include "Utility.h"
-#include "Stubs.h"
 #include "stm32f1xx_hal_adc.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_it.h"
@@ -51,15 +50,16 @@ __inline static int wait_mdi_ops_done(void)
 
 /*
  * wait until MSCL pin is set to high level
+ * input: wait time µs
  * return:  timeout=-1 MSCL high=0
  */
-int wait_mscl_high(void)
+int wait_mscl_high(unsigned long wait_time)
 {
 	unsigned long timeout = 0;
 	
 	while(MSCL() == 0) {
 		delay_us(1);
-		if (++timeout >= TIMEOUT_MSCL_HIGH)
+		if (++timeout >= wait_time)
 			return -1;
 	};
 	
@@ -69,15 +69,16 @@ int wait_mscl_high(void)
 
 /*
  * wait until MSCL pin is set to low level
+ * input: wait time µs
  * return:  timeout=-1 MSCL low=0
  */
-__inline static int wait_mscl_low(void)
+__inline static int wait_mscl_low(unsigned long wait_time)
 {
 	unsigned long timeout = 0;
 	
 	while(MSCL() == 1) {
 		delay_us(1);
-		if (++timeout >= TIMEOUT_MSCL_LOW)
+		if (++timeout >= wait_time)
 			return -1;
 		};
 	
@@ -115,32 +116,36 @@ int enter_monitor_mode(void)
 		
 	/* power up */
 	set_BAT(1);
-	LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_3);		// TestPoint
+
 	
 
 	if(mdi_type == PCF7945)
 	{
 		delay_us(T_DLY_SDA_HIGH_AFT_PON);
 		set_MSDA(1);
+
+		delay_us(T_DLY_SDA_LOW_AFT_SDA_HIGH);
+
+
+		/* If MSCL is not high, PCF seems to be not connected */
+		if(MSCL() != 1){
+			return CONNECT_ERR;
+		}
+
+		/* Wait PCF setting MSCL low, right afterwards master must select internal or external mdi mode */
+		if (wait_mscl_low(TIMEOUT_MSCL_LOW) < 0)
+			return CONNECT_ERR_PROT_MODE;
 	}
 	else
 	{
-		if (wait_mscl_high() < 0)
+		if (wait_mscl_high(TIMEOUT_MSCL_HIGH) < 0)
 		{
 			return CONNECT_ERR;
 		}
+		if (wait_mscl_low(TIMEOUT_MSCL_LOW) < 0)
+			return CONNECT_ERR;
 	}	
-				
-	delay_us(T_DLY_SDA_LOW_AFT_SDA_HIGH);
-	
-	/* If MSCL is not high, PCF seems to be not connected */
-	if(MSCL() != 1){
-		return CONNECT_ERR;
-	}
 
-	/* Wait PCF setting MSCL low, right afterwards master must select internal or external mdi mode */
-	if (wait_mscl_low() < 0)
-		return CONNECT_ERR_PROT_MODE;
 
 	
 	if(mdi_type == PCF7945){
@@ -206,7 +211,7 @@ static unsigned char recv_byte(void)
 	/* check if one byte received */
 	if (++bit >= MDI_RCV_BITS) {
 		if(mdi.status == WAIT_LAST_PULSE){		
-			if (wait_mscl_low() < 0)
+			if (wait_mscl_low(TIMEOUT_MSCL_LOW) < 0)
 				return -1;
 		
 			set_MSDA(1);
@@ -249,7 +254,7 @@ static int send_byte(unsigned char *data)
 	}
 	
 	
-	if (wait_mscl_low() < 0)
+	if (wait_mscl_low(TIMEOUT_MSCL_LOW) < 0)
 		return -1;
 
 	/* send the other bits */

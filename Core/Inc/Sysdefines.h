@@ -11,7 +11,7 @@
 /*************************
 Global Constants
 **************************/
-#define PCF_TOOL_SW_VERSION  {1,0,1} // Version x.y.z
+#define PCF_TOOL_SW_VERSION  {1,0,2} // Version x.y.z
 
 extern const uint8_t PCF_Tool_SW_Version[3];
 

@@ -27,7 +27,6 @@
 #include "Sysdefines.h"
 #include "mdi.h"
 #include "rom.h"
-#include "Stubs.h"
 #include "stdlib.h"
 #include "usb.h"
 #include "utility.h"

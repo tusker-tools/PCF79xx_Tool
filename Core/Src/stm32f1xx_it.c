@@ -25,7 +25,6 @@
 /* USER CODE BEGIN Includes */
 #include "Sysdefines.h"
 #include "mdi.h"
-#include "Stubs.h"
 
 /* USER CODE END Includes */
 
