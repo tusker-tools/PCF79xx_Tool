@@ -136,7 +136,7 @@ int write_erom_buf(void)
     if (chip_data.erom_crc32 == 0x00000000)
 		return 0;
 	   
-	crc32 = crc32_caculate(chip_data.erom, chip_data.erom_len);
+	crc32 = crc32_calculate(chip_data.erom, chip_data.erom_len);
 	if (crc32 != chip_data.erom_crc32)
 		return -1;
 	
@@ -239,7 +239,7 @@ int write_eerom_buf(void)
     if (chip_data.eeprom_crc32 == 0x00000000)
 		return 0;
 	
-	crc32 = crc32_caculate(chip_data.eeprom, chip_data.eeprom_len);
+	crc32 = crc32_calculate(chip_data.eeprom, chip_data.eeprom_len);
 	if (crc32 != chip_data.eeprom_crc32)
 		return -1;
 	
@@ -502,7 +502,7 @@ int read_erom_buf(void)
 	unsigned long crc32 = 0;
 	
 	if (chip_data.eeprom_crc32 != 0x00000000) {
-		crc32 = crc32_caculate(chip_data.erom, chip_data.erom_len);
+		crc32 = crc32_calculate(chip_data.erom, chip_data.erom_len);
 		if (crc32 != chip_data.erom_crc32)
 			return -1;
 	}
@@ -545,7 +545,7 @@ int read_eerom_buf(void)
 	unsigned long crc32 = 0;
 
 	if (chip_data.eeprom_crc32 != 0x00000000) {	
-		crc32 = crc32_caculate(chip_data.eeprom, chip_data.eeprom_len);
+		crc32 = crc32_calculate(chip_data.eeprom, chip_data.eeprom_len);
 		if (crc32 != chip_data.eeprom_crc32)
 			return -1;
 	}
@@ -611,7 +611,7 @@ int verify_erom_buf(void)
 		return -1;
 	
 	crc32_expect = user_op.data[0] | (user_op.data[1] << 8) | (user_op.data[2] << 16) | (user_op.data[3] << 24);
-	crc32 = crc32_caculate(chip_data.erom, chip_data.erom_len);
+	crc32 = crc32_calculate(chip_data.erom, chip_data.erom_len);
 	if (crc32 != crc32_expect)
 		return -1;
 	
@@ -661,7 +661,7 @@ int check_erom_buf(void)
 	if (chip_data.erom_crc32 == 0x00000000)
 		return 0;
 
-	crc32 = crc32_caculate(chip_data.erom, chip_data.erom_len);
+	crc32 = crc32_calculate(chip_data.erom, chip_data.erom_len);
 	if (crc32 != chip_data.erom_crc32)
 		return -1;
 
@@ -682,7 +682,7 @@ int check_eerom_buf(void)
 	if (chip_data.eeprom_crc32 == 0x00000000)
 		return 0;
 
-	crc32 = crc32_caculate(chip_data.eeprom, chip_data.eeprom_len);
+	crc32 = crc32_calculate(chip_data.eeprom, chip_data.eeprom_len);
 	if (crc32 != chip_data.eeprom_crc32)
 		return -1;
 
@@ -705,7 +705,7 @@ int verify_eerom_buf(void)
 		return -1;
 	
 	crc32_expected = user_op.data[0] | (user_op.data[1] << 8) | (user_op.data[2] << 16) | (user_op.data[3] << 24);
-	crc32 = crc32_caculate(chip_data.eeprom, chip_data.eeprom_len);
+	crc32 = crc32_calculate(chip_data.eeprom, chip_data.eeprom_len);
 	if (crc32 != crc32_expected)
 		return -1;
 	
@@ -753,7 +753,7 @@ int read_erom_buf_cks(void)
 		unsigned long crc32_long;
 	}temp;
 
-	temp.crc32_long = crc32_caculate(user_op.data, user_op.len);
+	temp.crc32_long = crc32_calculate(user_op.data, user_op.len);
 		
 	SendBytesUsb(temp.crc32_array, 4, UINT32_MAX);
 	

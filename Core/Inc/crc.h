@@ -4,6 +4,6 @@
 /*
  * Calculate CRC32 of memory region
  */
-unsigned long crc32_caculate(const unsigned char *data, size_t len);
+unsigned long crc32_calculate(const unsigned char *data, size_t len);
 
 #endif

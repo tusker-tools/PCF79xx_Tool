@@ -10,7 +10,7 @@
 /*
  * Calculate CRC32 of memory region. This function uses STM32's CRC hardware.
  */
-unsigned long crc32_caculate(const unsigned char *data, size_t len)
+unsigned long crc32_calculate(const unsigned char *data, size_t len)
 {
   uint32_t i, j;
 	
@@ -120,7 +120,7 @@ const unsigned long crc32_tab[] = {
  * Calculate CRC32 of memory region. This function variant works without
  * availability of a hardware CRC unit.
  */
-unsigned long crc32_caculate(const unsigned char *data, size_t len)
+unsigned long crc32_calculate(const unsigned char *data, size_t len)
 {
 	union cks {
 		uint8_t crc_array[4];		  // crc32
