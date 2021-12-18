@@ -36,8 +36,11 @@ _Min_Stack_Size = 0x400;	/* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 20K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 64K
+  RAM (xrw)    		: ORIGIN = 0x20000000,   	LENGTH = 20476
+  BOOTKEY_RAM (rw) 	: ORIGIN = 0x20004FFC,		LENGTH = 4
+  FLASH (rx)    	: ORIGIN = 0x8004800,   	LENGTH = 47104
+  SHARED_FLASH (rw)	: ORIGIN = 0x800FFF4,  		LENGTH = 12
+  
 }
 
 /* Sections */
@@ -120,6 +123,18 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+	/* Section shared between bootloader and application */
+  .shared_mem :
+  {
+  . = ALIGN(4);
+  __shared_mem_start__ = .;
+   	*(.shared_mem.PCF_Tool_SW_Version)
+    *(.shared_mem*)
+    . = __shared_mem_start__ + LENGTH(SHARED_FLASH); /* Place CRC32 to the very end of the section */
+  	*(.shared_mem.CRC32)
+  __shared_mem_end__ = .;
+  } > SHARED_FLASH
+
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
@@ -164,6 +179,12 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
+  
+  /* Following sections contains the bootkey set by application which indicates the bootloader to enter bootloader mode */
+  ._bootkey_section :
+  {
+  	*(._bootkey_section.BOOTKEY)
+  } >BOOTKEY_RAM
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

@@ -7,12 +7,13 @@
 #include "Utility.h"
 #include "Usb.h"
 #include "crc.h"
+#include "dwt_stm32_delay.h"
 
 
 struct chip_data_s chip_data;
 struct user_cmd_s user_op;
 enum MDI_DEVICETYPE_E mdi_type;
-
+extern volatile uint32_t BOOTKEY;
 
 
 
@@ -72,7 +73,7 @@ int ui_cmd_recv(void)
 			if (user_op.crc32 == 0x00000000)
 				return 0;
 			
-			crc32 = crc32_caculate(user_op.data, user_op.len);
+			crc32 = crc32_calculate(user_op.data, user_op.len);
 			if (crc32 != user_op.crc32)
 				return -1;
 		}
@@ -271,6 +272,27 @@ int ui_cmd_handler(void)
 	case PROTECT:
 		ret = pcf_protect();
 		status = ret > 0 ? ret : SUCCESSFULL;
+		break;
+
+	case SWITCH_BTLD_MODE:
+		BOOTKEY = 0x12345678;
+		if(BOOTKEY == 0x12345678)
+		{
+			/* Stop USB Device to enable new enumeration in bootloader mode */
+		    LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_12, LL_GPIO_MODE_OUTPUT);
+		    LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_12, LL_GPIO_SPEED_FREQ_LOW);
+		    LL_GPIO_SetPinOutputType(GPIOA,LL_GPIO_PIN_12, LL_GPIO_OUTPUT_PUSHPULL);
+		    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_12);
+
+		    delay_ms(1000);
+
+		    /* Force soft reset to restart in bootloader mode */
+		    NVIC_SystemReset();
+		}
+		else
+		{
+			status = BOOTKEY_NOT_WRITTEN;
+		}
 		break;
 
 	case PROGRAM_SPECIAL_BYTES:
