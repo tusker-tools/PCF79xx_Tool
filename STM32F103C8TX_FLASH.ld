@@ -39,7 +39,7 @@ MEMORY
   RAM (xrw)    		: ORIGIN = 0x20000000,   	LENGTH = 20476
   BOOTKEY_RAM (rw) 	: ORIGIN = 0x20004FFC,		LENGTH = 4
   FLASH (rx)    	: ORIGIN = 0x8004800,   	LENGTH = 47104
-  SHARED_FLASH (rw)	: ORIGIN = 0x800FFF4,  		LENGTH = 12
+  SHARED_FLASH (rw)	: ORIGIN = 0x800FFF4,  		LENGTH = 8
   
 }
 
@@ -130,8 +130,8 @@ SECTIONS
   __shared_mem_start__ = .;
    	*(.shared_mem.PCF_Tool_SW_Version)
     *(.shared_mem*)
-    . = __shared_mem_start__ + LENGTH(SHARED_FLASH); /* Place CRC32 to the very end of the section */
-  	*(.shared_mem.CRC32)
+    /*. = __shared_mem_start__ + LENGTH(SHARED_FLASH); /* Place CRC32 to the very end of the section */
+  	/**(.shared_mem.CRC32)*/
   __shared_mem_end__ = .;
   } > SHARED_FLASH
 
