@@ -55,7 +55,6 @@
 
 /* Special memory areas not to be used by program memory  */
 __attribute__((section(".shared_mem.VERSION_NUMBER"))) uint8_t PCF_Tool_SW_Version[3] = PCF_TOOL_SW_VERSION;
-__attribute__((section(".shared_mem.APPLICATION_CRC32"))) uint32_t APPLICATION_CRC32;
 __attribute__((section("._bootkey_section.BOOTKEY"))) uint32_t BOOTKEY = 0;
 
 /* USER CODE END PV */
