@@ -5,7 +5,7 @@
 #include "rom.h"
 #include "stdlib.h"
 #include "Utility.h"
-#include "Usb.h"
+#include "usb.h"
 #include "crc.h"
 #include "dwt_stm32_delay.h"
 
@@ -279,10 +279,12 @@ int ui_cmd_handler(void)
 		if(BOOTKEY == 0x12345678)
 		{
 			/* Stop USB Device to enable new enumeration in bootloader mode */
-		    LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_12, LL_GPIO_MODE_OUTPUT);
-		    LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_12, LL_GPIO_SPEED_FREQ_LOW);
-		    LL_GPIO_SetPinOutputType(GPIOA,LL_GPIO_PIN_12, LL_GPIO_OUTPUT_PUSHPULL);
-		    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_12);
+			UsbDisconnect();
+
+			LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_12, LL_GPIO_MODE_OUTPUT);
+			LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_12, LL_GPIO_SPEED_FREQ_LOW);
+			LL_GPIO_SetPinOutputType(GPIOA,LL_GPIO_PIN_12, LL_GPIO_OUTPUT_PUSHPULL);
+			LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_12);
 
 		    delay_ms(1000);
 
