@@ -17,5 +17,6 @@ bool UsbCharOut(char c); /* sendet ein Char zum Host. Gibt false zurück falls g
 void UsbStrOut(char* S); /* sendet einen String zum Host */
 void UsbTxFlush (void);	 /* Sende alles im Puffer befindliche ab (asynchron, nicht-blockierend) */
 uint16_t UsbSetup(void);     /* Starten des USB-Cores */
+void UsbDisconnect(void);	/* USB-Gerät Stoppen */
 
 #endif

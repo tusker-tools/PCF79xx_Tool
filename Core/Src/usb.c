@@ -1569,6 +1569,23 @@ uint16_t UsbSetup(void)
     return 0;
 }
 
+/************  USB-Disconnect **********************************/
+/* Disconnect USB Device. Danach muss noch D+ Pin auf low gezogen werden -> Windows erkennt Trennung des Geräts */
+/**********************************************************/
+void UsbDisconnect(void){
+	/* USB Device Disconnect (Equal to HAL_PCD_Disconnect) */
+
+	/* disable all interrupts and force USB reset */
+	USB_CNTR = FRES;
+
+	/* clear interrupt status register */
+	USB_ISTR = 0;
+
+	  /* switch-off device */
+	USB_CNTR = (FRES | PDWN);
+}
+
+
 /********** zeichenweises I/O und Pufferung und Kommunikation ***************/
 /*
  Diese Routinen werden von außerhalb im Usermode
