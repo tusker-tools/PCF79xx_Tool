@@ -11,7 +11,7 @@
 /*************************
 Global Constants
 **************************/
-#define PCF_TOOL_SW_VERSION  {1,1,0} // Version x.y.z
+#define PCF_TOOL_SW_VERSION  {1,1,1} // Version x.y.z
 
 extern __attribute__((section(".shared_mem.VERSION_NUMBER"))) uint8_t PCF_Tool_SW_Version[3];
 

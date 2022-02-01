@@ -177,12 +177,12 @@ int enter_monitor_mode(void)
 	timeout = 0;
 	while(mdi.status != DONE) {
 		if (++timeout >= TIMEOUT_DEV_ACK)
-			return -1;
+			return RECV_TOUT;
 		delay_us(1);
 	};
 	
 	if (mdi.data[0] != DEV_ACK)
-		return -1;
+		return UNEXPECTED_RESPONSE;
 	
 	return 0;
 }

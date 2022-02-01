@@ -273,13 +273,12 @@ void revert_bytes(uint8_t *Data, uint8_t length)
 status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout_ms){
 	
 	// All times given as CPU clock cycles
+
+	uint32_t t_act;// Current time
+	uint32_t t_resi;
+	uint32_t t_old = DWT->CYCCNT;
 	
-	uint32_t t_act = DWT->CYCCNT;																											// Current time
-	uint32_t t_old = t_act;	// Last While recurrence begin time
-	uint32_t t_resi = tout_ms * (HAL_RCC_GetHCLKFreq() / 1000);					// Residual time of tout
-	
-	
-	uint16_t bytes_received = 0;																								// Residual bytest to fetch
+	uint16_t bytes_received = 0;
 	
 	if(tout_ms == UINT32_MAX)
 	{
@@ -295,6 +294,8 @@ status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout_ms){
 	}
 	else{
 		// Loop with timeout
+		uint32_t t_resi = tout_ms * (HAL_RCC_GetHCLKFreq() / 1000);					// Residual time of tout
+
 		while( (t_resi > 0) && (bytes_received < bytes) )
 		{	
 			if( UsbRxAvail() )
@@ -329,19 +330,35 @@ void SendBytesUsb(uint8_t Data[], uint16_t bytes, uint32_t tout)
 {
 	uint16_t bytes_sent = 0;
 	
-	uint32_t t_act = DWT->CYCCNT;																				// Start time
-	uint32_t t_old = t_act + (HAL_RCC_GetHCLKFreq() / 1000000) * tout;	// Last While recurrence begin time
-	uint32_t t_resi = tout * (HAL_RCC_GetHCLKFreq() / 1000000);					// Residual time of tout
+	uint32_t t_act;
+	uint32_t t_old = DWT->CYCCNT;
+
 	
-	while((bytes_sent < bytes) && (t_resi > 0)) {
-		if (UsbCharOut(Data[bytes_sent])){
-			bytes_sent++;
+	// No Timeout
+	if(tout == UINT32_MAX)
+	{
+		while((bytes_sent < bytes))
+		{
+			if (UsbCharOut(Data[bytes_sent]))
+			{
+				bytes_sent++;
+			}
 		}
+	}
+	else
+	{
+		uint32_t t_resi = tout * (HAL_RCC_GetHCLKFreq() / 1000000);					// Residual time of tout
+
+		while((bytes_sent < bytes) && (t_resi > 0))
+		{
+			if (UsbCharOut(Data[bytes_sent]))
+			{
+				bytes_sent++;
+			}
 		
 		t_act = DWT->CYCCNT;
 		u32_sat_sub_u32_u32(t_resi,(t_act-t_old));
-		
 		t_old = t_act;
-		
+		}
 	}
 }
