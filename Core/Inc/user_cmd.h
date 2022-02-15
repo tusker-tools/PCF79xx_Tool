@@ -8,6 +8,8 @@ enum USER_OPS_E {
 	ERASE = 					0x0A,
 	PROTECT = 					0x1A,
 	SWITCH_BTLD_MODE =			0x2A,
+	PCF_RUN_PROGRAM =			0x3A,
+	PCF_RESET =					0x4A,
 	WRITE_ER_BUF = 				0x2B,
 	PROGRAM_ER = 				0x0B,
 	PROGRAM_ER64 = 				0x4B,

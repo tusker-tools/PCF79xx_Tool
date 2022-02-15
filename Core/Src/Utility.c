@@ -275,7 +275,6 @@ status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout_ms){
 	// All times given as CPU clock cycles
 
 	uint32_t t_act;// Current time
-	uint32_t t_resi;
 	uint32_t t_old = DWT->CYCCNT;
 	
 	uint16_t bytes_received = 0;
@@ -308,15 +307,17 @@ status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout_ms){
 			
 			t_old = t_act;
 		}
+
+		if (t_resi == 0){
+			return ERR_TIMEOUT;
+		}
 	}
 	
 	// Return resulting state
 	if (bytes_received == bytes){
 		return STATUS_OK;
 	}
-	if (t_resi == 0){
-		return ERR_TIMEOUT;
-	}
+
 	return ERR_ABORTED;
 }
 

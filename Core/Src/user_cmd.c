@@ -274,6 +274,16 @@ int ui_cmd_handler(void)
 		status = ret > 0 ? ret : SUCCESSFULL;
 		break;
 
+	case PCF_RUN_PROGRAM:
+		ret = pcf_run_program();
+		status = ret > 0 ? ret : SUCCESSFULL;
+		break;
+
+	case PCF_RESET:
+		ret = pcf_reset();
+		status = ret > 0 ? ret : SUCCESSFULL;
+		break;
+
 	case SWITCH_BTLD_MODE:
 		BOOTKEY = 0x12345678;
 		if(BOOTKEY == 0x12345678)

@@ -833,3 +833,38 @@ int pcf_protect(void){
 	return status;
 }
 
+/*
+ * Set PCF into "run" mode
+ */
+int pcf_run_program(void){
+	int status = 0;
+
+	/* send c_go command to PCF */
+	status = send_mdi_cmd(C_GO);
+
+	/* Additional Hint:
+	 * In case MSDA=1, PCF sends two bytes Program Counter
+	 * as soon as breakpoint was hit.
+	 * Program execution can be stopped by setting MSDA=0
+	 */
+
+	/* Receive 2bytes Program counter. A long delay has to be considered,
+	 * thus functionality must be adapted
+	 * status |= recv_data(2);
+	 * SendBytesUsb(mdi.data, 2, UINT32_MAX); */
+
+	return status;
+}
+
+/*
+ * Reset of PCF device
+ */
+int pcf_reset(void){
+	int status = 0;
+
+	/* send c_reset command */
+	status = send_mdi_cmd(C_RESET);
+
+	return status;
+
+}
