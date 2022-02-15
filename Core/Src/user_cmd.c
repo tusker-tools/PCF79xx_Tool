@@ -260,6 +260,12 @@ int ui_cmd_handler(void)
 		case 3:
 			ret = read_pcf_mem_cks(ROM);
 			break;
+		case 4:
+			ret = read_pcf_mem_cks(EEROM_NORM);
+			break;
+		case 5:
+			ret = read_pcf_mem_cks(XROM);
+			break;
 		}
 		status = ret > 0 ? ret : SUCCESSFULL;
 		break;

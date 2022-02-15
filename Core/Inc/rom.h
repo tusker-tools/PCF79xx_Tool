@@ -3,10 +3,12 @@
 
 // Memory checksum types of PCF
 typedef enum{
-	EROM,
-	EEROM,
-	EROM_NORM,
-	ROM
+	EROM = 0,
+	EEROM = 1,
+	EROM_NORM = 2,		// EROM normalized
+	ROM = 3,			// System ROM
+	EEROM_NORM = 4,		// EEROM normalized (without special pages)
+	XROM = 5			// User ROM
 }PCF_MEM_CKS_E;
 
 struct chip_data_s {

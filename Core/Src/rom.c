@@ -792,7 +792,29 @@ int read_pcf_mem_cks(PCF_MEM_CKS_E pcf_mem_cks_type){
 			status |= recv_data(3);
 			break;
 		case ROM:
-			status = send_mdi_cmd(C_SIG_EEROM);
+			status = send_mdi_cmd(C_SIG_ROM);
+			status |= recv_data(3);
+			break;
+		case EEROM_NORM:
+			/* EEROM_NORM CKS only supported by PCF7953/45:
+			 * XROM and EEROM_NORM signature have two command bytes.
+			 * First byte is common for both commands */
+			status = send_mdi_cmd(C_SIG_XROM_or_EEROM_NORM);
+
+			/* Second byte is 0x20 for EEROM_NORM */
+			status |= send_mdi_cmd(0x20);
+
+			status |= recv_data(3);
+			break;
+		case XROM:
+			/* XROM CKS only supported by PCF7953/45:
+			 * XROM and EEROM_NORM signature have two command bytes.
+			 * First byte is common for both commands */
+			status = send_mdi_cmd(C_SIG_XROM_or_EEROM_NORM);
+
+			/* Second byte is 0x00 for EEROM_NORM */
+			status |= send_mdi_cmd(0x00);
+
 			status |= recv_data(3);
 			break;
 	}
