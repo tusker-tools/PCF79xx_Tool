@@ -22,6 +22,12 @@ struct chip_data_s {
 	unsigned long eeprom_crc32;	  // crc32 of eeprom
 };
 
+struct mem_layout{
+	uint16_t EROM;
+	uint16_t EEROM;
+};
+extern struct mem_layout pcf_mem_sizes[2];
+
 int pcf_init_mdi(void);
 int pcf_erase(void);
 int write_erom_buf(void);

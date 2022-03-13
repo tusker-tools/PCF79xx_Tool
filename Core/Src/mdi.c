@@ -187,6 +187,25 @@ int enter_monitor_mode(void)
 	return 0;
 }
 
+
+/*
+ * Switch-on/-off supply voltage (BAT_PIN) for PCF
+ * All other MDI pins are set to low
+ */
+int pcf_power_on(void){
+	/* Switch power off and wait for discharge */
+	set_BAT(0);
+	delay_ms(500);
+
+	/* Power up */
+	set_MSDA(1);
+	set_MSCL(0);
+	set_BAT(1);
+
+	return 0;
+}
+
+
 /*
  * Receive single byte from PCF via MDI.
  * This function is called by external interrupt handler

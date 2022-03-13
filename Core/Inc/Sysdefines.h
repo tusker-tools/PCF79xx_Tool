@@ -1,11 +1,10 @@
-#ifndef Sysdefines_H
+﻿#ifndef Sysdefines_H
 #define Sysdefines_H
 
 
 // includes
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx.h"
-
 
 
 /*************************
@@ -61,10 +60,9 @@ Config for MDI protocol
 /*************************
 Memory configuration (PCF memory / PCF_Tool memory)
 **************************/
-#define EROM_SIZE            		8192
 #define EROM_PAGE_SIZE       		32
+#define EROM_SIZE_STD	  		  8192
 #define EROM_PAGE_SIZE64	 		64
-#define EEROM_SIZE           		1024
 #define EEPROM_PAGE_SIZE     		4
 #define BUF_SIZE             		8224
 
