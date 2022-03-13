@@ -85,5 +85,6 @@ int recv_data(unsigned long len);
 int send_data(unsigned char *data_ptr, unsigned long len);
 int send_mdi_cmd(unsigned char byte);
 int enter_monitor_mode(void);
+int pcf_power_on(void);
 
 #endif

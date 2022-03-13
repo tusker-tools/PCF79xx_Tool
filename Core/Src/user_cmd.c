@@ -147,8 +147,8 @@ int ui_cmd_handler(void)
 	case PROGRAM_EE:
 		ret = check_eerom_buf();
 		if (ret == 0) {
-			memcpy(mdi.buf, chip_data.eeprom, EEROM_SIZE);
-			ret = revert(mdi.buf, EEROM_SIZE);
+			memcpy(mdi.buf, chip_data.eeprom, pcf_mem_sizes[mdi_type].EEROM);
+			ret = revert(mdi.buf, pcf_mem_sizes[mdi_type].EEROM);
 			ret |= program_eerom();
 		}
 		if (ret != OK){
@@ -163,8 +163,8 @@ int ui_cmd_handler(void)
 	case PROGRAM_EE_MANUAL:
 		ret = check_eerom_buf();
 		if (ret == 0) {
-			memcpy(mdi.buf, chip_data.eeprom, EEROM_SIZE);
-			ret = revert(mdi.buf, EEROM_SIZE);
+			memcpy(mdi.buf, chip_data.eeprom, pcf_mem_sizes[mdi_type].EEROM);
+			ret = revert(mdi.buf, pcf_mem_sizes[mdi_type].EEROM);
 			ret |= program_eerom_manual();
 		}
 		status = ret > 0 ? ret : SUCCESSFULL;
@@ -173,8 +173,8 @@ int ui_cmd_handler(void)
 	case PROGRAM_EE_WO_SPCL_PAGE:
 		ret = check_eerom_buf();
 		if (ret == 0) {
-			memcpy(mdi.buf, chip_data.eeprom, EEROM_SIZE);
-			ret = revert(mdi.buf, EEROM_SIZE);
+			memcpy(mdi.buf, chip_data.eeprom, pcf_mem_sizes[mdi_type].EEROM);
+			ret = revert(mdi.buf, pcf_mem_sizes[mdi_type].EEROM);
 			ret |= program_eerom_wo_spcl_page();
 		}
 		if (ret != OK){
@@ -204,8 +204,8 @@ int ui_cmd_handler(void)
 	case VERIFY_EE:
 		ret = verify_eerom_buf();
 		if (ret == 0) {
-			memcpy(mdi.buf, chip_data.eeprom, EEROM_SIZE);
-			ret = revert(mdi.buf, EEROM_SIZE);
+			memcpy(mdi.buf, chip_data.eeprom, pcf_mem_sizes[mdi_type].EEROM);
+			ret = revert(mdi.buf, pcf_mem_sizes[mdi_type].EEROM);
 			ret |= verify_eerom();
 		}
 		status = ret > 0 ? ret : SUCCESSFULL;
@@ -287,6 +287,11 @@ int ui_cmd_handler(void)
 
 	case PCF_RESET:
 		ret = pcf_reset();
+		status = ret > 0 ? ret : SUCCESSFULL;
+		break;
+
+	case PCF_PWR_ON:
+		ret = pcf_power_on();
 		status = ret > 0 ? ret : SUCCESSFULL;
 		break;
 

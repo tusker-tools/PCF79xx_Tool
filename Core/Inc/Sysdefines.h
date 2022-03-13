@@ -1,4 +1,4 @@
-#ifndef Sysdefines_H
+﻿#ifndef Sysdefines_H
 #define Sysdefines_H
 
 
@@ -7,11 +7,10 @@
 #include "stm32f1xx.h"
 
 
-
 /*************************
 Global Constants
 **************************/
-#define PCF_TOOL_SW_VERSION  {1,2,0} // Version x.y.z
+#define PCF_TOOL_SW_VERSION  {1,2,1} // Version x.y.z
 
 extern __attribute__((section(".shared_mem.VERSION_NUMBER"))) uint8_t PCF_Tool_SW_Version[3];
 
@@ -61,10 +60,9 @@ Config for MDI protocol
 /*************************
 Memory configuration (PCF memory / PCF_Tool memory)
 **************************/
-#define EROM_SIZE            		8192
 #define EROM_PAGE_SIZE       		32
+#define EROM_SIZE_STD	  		  8192
 #define EROM_PAGE_SIZE64	 		64
-#define EEROM_SIZE           		1024
 #define EEPROM_PAGE_SIZE     		4
 #define BUF_SIZE             		8224
 

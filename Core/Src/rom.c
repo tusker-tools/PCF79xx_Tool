@@ -14,6 +14,16 @@ int pcf_erase(void);
 
 
 /*
+ *  Define mem layout for different chips
+ */
+struct mem_layout pcf_mem_sizes[]={
+		[F26A0700]	=	{EROM_SIZE_STD,512},
+		[PCF7945]	=	{EROM_SIZE_STD,1024}
+};
+
+
+
+/*
  * Initialize PCF's monitor- and download interface (MDI)
  * 1. Send init-pattern (by setting electrical levels of MSCL and MSCL lines accordingly)
  * 2a)Start PCF erase procedure if requested by user command or
@@ -124,10 +134,10 @@ int write_erom_buf(void)
 	if (user_op.address != 0)
 		return -1;
 	
-	if (user_op.len > EROM_SIZE)
+	if (user_op.len > pcf_mem_sizes[mdi_type].EROM)
 		return -1;
 		
-	memset(chip_data.erom, 0x00, EROM_SIZE); 
+	memset(chip_data.erom, 0x00, pcf_mem_sizes[mdi_type].EROM);
 	chip_data.erom_len = user_op.len;
 	chip_data.erom_start = user_op.address;
 	chip_data.erom_crc32 = user_op.crc32;
@@ -155,7 +165,7 @@ int program_erom(void)
 	unsigned short pages = chip_data.erom_len / EROM_PAGE_SIZE;
 	int status = 0;	
 		
-	if ((chip_data.erom_start +  chip_data.erom_len) > EROM_SIZE)
+	if ((chip_data.erom_start +  chip_data.erom_len) > pcf_mem_sizes[mdi_type].EROM)
 		return -1;
 	
 	pages = (pages > 0) ? pages : 1;		
@@ -190,7 +200,7 @@ int program_erom64(void)
 	unsigned short pages = chip_data.erom_len / EROM_PAGE_SIZE64;
 	int status = 0;	
 		
-	if ((chip_data.erom_start +  chip_data.erom_len) > EROM_SIZE)
+	if ((chip_data.erom_start +  chip_data.erom_len) > pcf_mem_sizes[mdi_type].EROM)
 		return -1;
 	
 	pages = (pages > 0) ? pages : 1;		
@@ -227,10 +237,10 @@ int write_eerom_buf(void)
 	if (user_op.address != 0)
 		return -1;
 		
-	if (user_op.len > EEROM_SIZE)
+	if (user_op.len > pcf_mem_sizes[mdi_type].EEROM)
 		return -1;
 		 
-	memset(chip_data.eeprom, 0x00, EEROM_SIZE); 
+	memset(chip_data.eeprom, 0x00, pcf_mem_sizes[mdi_type].EEROM);
 	chip_data.eeprom_len = user_op.len;
 	chip_data.eeprom_start = user_op.address;
 	chip_data.eeprom_crc32 = user_op.crc32;
@@ -325,7 +335,7 @@ int program_eerom(void)
 	}
 	
 	
-	if ((chip_data.eeprom_start + chip_data.eeprom_len) > EEROM_SIZE)
+	if ((chip_data.eeprom_start + chip_data.eeprom_len) > pcf_mem_sizes[mdi_type].EEROM)
 		return -1;
 	
 	pages = (pages > 0) ? pages : 1;				// at least one page must be written. ToDo: Error Message to user
@@ -405,7 +415,7 @@ int program_eerom_wo_spcl_page(void)
 	}
 
 
-	if ((chip_data.eeprom_start + chip_data.eeprom_len) > EEROM_SIZE)
+	if ((chip_data.eeprom_start + chip_data.eeprom_len) > pcf_mem_sizes[mdi_type].EEROM)
 		return -1;
 
 	pages = (pages > 0) ? pages : 1;				// at least one page must be written. ToDo: Error Message to user
@@ -458,7 +468,7 @@ int program_eerom_manual(void)
 	unsigned short pages = chip_data.eeprom_len / EEPROM_PAGE_SIZE;
 	int status = 0;
 
-	if ((chip_data.eeprom_start + chip_data.eeprom_len) > EEROM_SIZE)
+	if ((chip_data.eeprom_start + chip_data.eeprom_len) > pcf_mem_sizes[mdi_type].EEROM)
 		return -1;
 		
 	for (unsigned int i = 0; i < pages; i++) {
@@ -507,7 +517,7 @@ int read_erom_buf(void)
 			return -1;
 	}
 
-	SendBytesUsb(chip_data.erom, EROM_SIZE, UINT32_MAX);
+	SendBytesUsb(chip_data.erom, pcf_mem_sizes[mdi_type].EROM, UINT32_MAX);
 
    return 0;
 }
@@ -525,11 +535,11 @@ int read_erom(void)
 	send_mdi_cmd(C_ER_DUMP);
 	
 	/* check eecon */	
-	status = recv_data(EROM_SIZE);
+	status = recv_data(pcf_mem_sizes[mdi_type].EROM);
 	
 	if (status == 0)
 
-	SendBytesUsb(mdi.data, EROM_SIZE, UINT32_MAX);
+	SendBytesUsb(mdi.data, pcf_mem_sizes[mdi_type].EROM, UINT32_MAX);
 	return status;	
 }
 
@@ -550,7 +560,7 @@ int read_eerom_buf(void)
 			return -1;
 	}
 
-   SendBytesUsb(chip_data.eeprom, EEROM_SIZE, UINT32_MAX);
+   SendBytesUsb(chip_data.eeprom, pcf_mem_sizes[mdi_type].EEROM, UINT32_MAX);
    return 0;
 }
 
@@ -569,14 +579,14 @@ int read_eerom(void)
 	
 	if(user_op.len == 0)
 	{
-		status = recv_data(EEROM_SIZE);
+		status = recv_data(pcf_mem_sizes[mdi_type].EEROM);
 		
 		if (status == 0) {
-			revert(mdi.data, EEROM_SIZE);	
-			SendBytesUsb(mdi.data, EEROM_SIZE, UINT32_MAX);
+			revert(mdi.data, pcf_mem_sizes[mdi_type].EEROM);
+			SendBytesUsb(mdi.data, pcf_mem_sizes[mdi_type].EEROM, UINT32_MAX);
 		}
 		else if(status == TOO_LESS_DATA){
-			revert(mdi.data, EEROM_SIZE);	
+			revert(mdi.data, pcf_mem_sizes[mdi_type].EEROM);
 			SendBytesUsb(mdi.data, mdi.transfer, UINT32_MAX);
 		}
 	}
@@ -627,14 +637,14 @@ int verify_erom(void)
 {
 	int status = 0;
 
-	if (user_op.len > EROM_SIZE)
+	if (user_op.len > pcf_mem_sizes[mdi_type].EROM)
 		return -1;
 	 
 	/* send command */
 	status = send_mdi_cmd(C_ER_DUMP);
 	
 	/* check eecon */	
-	status |= recv_data(EROM_SIZE);
+	status |= recv_data(pcf_mem_sizes[mdi_type].EROM);
 	if (status < 0)
 		return -1;
 			
@@ -721,14 +731,14 @@ int verify_eerom(void)
 {
 	int status = 0;
 
-	if (user_op.len > EEROM_SIZE)
+	if (user_op.len > pcf_mem_sizes[mdi_type].EEROM)
 		return -1;
 		
 	/* send command */
 	status = send_mdi_cmd(C_EE_DUMP);
 	
 	/* check eecon */	
-	status |= recv_data(EEROM_SIZE);
+	status |= recv_data(pcf_mem_sizes[mdi_type].EEROM);
   	if (status < 0)
   		return -1;
 	
