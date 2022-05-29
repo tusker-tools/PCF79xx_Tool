@@ -186,6 +186,11 @@ int ui_cmd_handler(void)
 		}
 		break;
 
+	case WRITE_PCF_REG:
+		// writes one databyte to a specific address of the PCF (address byte0: register address, address byte 1: data)
+		ret = write_pcf_reg(user_op.addresses[0], user_op.addresses[1]);
+		status = ret > 0 ? ret : SUCCESSFULL;
+
 	case VERIFY_ER_BUF:
 		ret = verify_erom_buf();
 		status = ret > 0 ? ret : SUCCESSFULL;

@@ -500,6 +500,17 @@ int program_eerom_manual(void)
 }
 
 
+/* Writes one byte of data to a register specified by addr parameter */
+int write_pcf_reg(uint8_t pcf_reg_addr, uint8_t pcf_data)
+{
+	int status = 0;
+	status |= send_mdi_cmd(C_SETDAT);
+	status |= send_mdi_cmd(pcf_reg_addr);
+	status |= send_mdi_cmd(pcf_data);
+
+	return status;
+}
+
 /*
  * Reads the EROM content stored in the tool's buffer and outputs it to the user interface.
  * If related CRC32 value is also stored in buffer, the CRC32 of the data is calculated and compared

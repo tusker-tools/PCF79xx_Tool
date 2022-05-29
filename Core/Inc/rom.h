@@ -37,6 +37,7 @@ int write_eerom_buf(void);
 int program_eerom(void);
 int program_eerom_wo_spcl_page(void);
 int program_eerom_manual(void);
+int write_pcf_reg(uint8_t pcf_reg_addr, uint8_t pcf_data);
 int verify_erom_buf(void);
 int verify_erom(void);
 int verify_eerom_buf(void);
