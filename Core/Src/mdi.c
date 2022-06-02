@@ -2,7 +2,6 @@
 #include "Sysdefines.h"
 #include "mdi.h"
 #include "Utility.h"
-#include "stm32f1xx_hal_adc.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_it.h"
 #include "dwt_stm32_delay.h"
@@ -10,7 +9,7 @@
 /***************************
  * Data Declarations & Variable Initializations
  ****************************/
-unsigned int bit = 0;
+volatile unsigned int bit = 0;
 static unsigned char data = 0;
 
 /* magic number used as security key for erase and EROM_CKS_NORM cmd */
@@ -164,15 +163,15 @@ int enter_monitor_mode(void)
 
 	set_MSDA(0);
 	
+	// ToDo: Check if Receive data can be used here
 	mdi.status = INIT;
 	mdi.dir = RECV;
+
 
 	/* rising edge signalizes confirmation of MDI mode request */
 	active_MSCL_rising_edge_IT(1);
 
 	LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_3); // Test point
-	delay_us(10);
-
 	
 	timeout = 0;
 	while(mdi.status != DONE) {
@@ -212,13 +211,6 @@ int pcf_power_on(void){
  */
 static unsigned char recv_byte(void)
 {
-	/* First call of function (at first rising edge of MSCL signal)? */
-	if (mdi.status == INIT)	{
-		mdi.status = IDLE;
-		bit = 0;
-		return data;
-	}
-
 	/* First bit (= falling edge of MSCL)? -> Change mdi status and reset data */
 	if (bit == 0){
 		mdi.status = BUSY;
@@ -251,46 +243,36 @@ static unsigned char recv_byte(void)
  * This function is called by external interrupt handler.
  * return 0: success -1:error
  */
-static int send_byte(unsigned char *data)
+static inline int __attribute__((optimize("O1"))) send_byte(unsigned char *data)
 {
-	static unsigned int bit = 0;
-	
-	/* check if bits is error */
-	if (bit >= MDI_SND_BITS)
-		bit = 0;
-	
+	if (bit < MDI_SND_BITS) {
+		if (((*data >> bit) & 0x01) != 0){
+			//Set MSDA;
+			MSDA_PORT->BSRR = (1<<MSDA_PIN_number);
+		}
+		else{
+			//Clear MSDA
+			MSDA_PORT->BRR =  (1<<MSDA_PIN_number);
+		}
+	}
+
 	if (mdi.status == IDLE)	{
 		mdi.status = BUSY;
-		bit = 0;
+		active_MSCL_rising_edge_IT(0);
+		active_MSCL_falling_edge_IT(1);
 	}
-	
-	/* send the first bit */
-	if (bit == 0) {
-		if ((*data & 0x01) != 0)
-			set_MSDA(1);
-		else
-			set_MSDA(0);
-	}
-	
-	
-	if (wait_mscl_low(TIMEOUT_MSCL_LOW) < 0)
-		return -1;
 
-	/* send the other bits */
-	if (bit < (MDI_SND_BITS - 1)) {
-		if ((*data >> (bit + 1) & 0x01) != 0)
-			set_MSDA(1);
-		else
-			set_MSDA(0);
-	}
 	
 	/* check if one byte sent */
-	if (++bit >= MDI_SND_BITS) {
+	if (bit >= MDI_SND_BITS ) {
+		//delay_us(25);
+		LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_2);
+		//wait_mscl_low(25);
+		bit = 0;
 		set_MSDA(1);
-		delay_us(25);
 		mdi.status = DONE;
 	}
-	
+	bit++;
 	return *data;
 }
 
@@ -310,9 +292,11 @@ int send_data(unsigned char *data_ptr, unsigned long len)
 		active_MSCL_rising_edge_IT(1);		// ToDo: SCL rising edge is expected after MSDA set low-> move after pio_set_output
 		mdi.dir = SEND;
 		mdi.status = IDLE;
+		bit = 0;
 		set_MSDA(0);
 		if (wait_mdi_ops_done() < 0){
 			active_MSCL_rising_edge_IT(0);
+			active_MSCL_falling_edge_IT(0);
 			set_MSDA(1);
 			return -1;
 		}
@@ -347,10 +331,12 @@ int send_mdi_cmd(unsigned char byte)
 	active_MSCL_rising_edge_IT(1);
 	mdi.dir = SEND;
 	mdi.status = IDLE;
+	bit = 0;
 	set_MSDA(0);
 	if (wait_mdi_ops_done() < 0)
 	{
 		active_MSCL_rising_edge_IT(0);
+		active_MSCL_falling_edge_IT(0);
 		set_MSDA(1);
 		return -1;
 	}
@@ -405,22 +391,26 @@ int recv_data(unsigned long len)
  */
 void exti_handler(void)
 {	
-	if(debugflag){
-		LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_3);
-	}
-	
 	if (mdi.dir == RECV){ 
 		/* On first call of exti_handler for receiving data,
 		  then it was due to a MSCL rising edge used for switching on the pullup */
 		if (mdi.status == INIT){
+
+			set_MSDA_input_pullup();
+			mdi.status = IDLE;
+			bit = 0;
+
 			/* Activate falling edge IT to sample bit data on every falling edge */
 			active_MSCL_falling_edge_IT(1);
-			
-			set_MSDA_input_pullup();
 		}
+		else{
+			mdi.data[mdi.transfer] = recv_byte();
+		}
+
+
 		LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_3);
 
-		mdi.data[mdi.transfer] = recv_byte();
+
 	}	
 	else{
 		send_byte(mdi.data_ptr + mdi.transfer);

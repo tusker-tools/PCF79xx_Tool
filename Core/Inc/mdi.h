@@ -11,7 +11,8 @@ enum MDI_RET_STATUS_E{
 	ERR_STATE_RCV = 2,		// Error-status received
 	RCV_TOUT = 4,			// No clock edges before timeout time
 	PROG_SPCL_PG_FAIL = 8,	// No confirmation received after special page 127 was programmed
-	ERR = 16				// General Error
+	ERR = 16,				// General Error
+	PAYLOAD_NOT_MATCHING_CHIP_MEM = 32
 };
 
 // Attention: Defined also in Sysdefines

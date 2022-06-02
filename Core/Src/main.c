@@ -18,12 +18,11 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <user_cmd.h>
 #include "main.h"
-#include "stm32f103xb.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32f103xb.h"
 #include "Sysdefines.h"
 #include "mdi.h"
 #include "rom.h"
@@ -31,6 +30,7 @@
 #include "usb.h"
 #include "utility.h"
 #include "dwt_stm32_delay.h"
+#include "user_cmd.h"
 
 /* USER CODE END Includes */
 
@@ -62,7 +62,6 @@ __attribute__((section("._bootkey_section.BOOTKEY"))) uint32_t BOOTKEY = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-
 /* USER CODE BEGIN PFP */
 
 static void MX_GPIO_EXTI_Init(void);
@@ -85,7 +84,17 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
+
+  NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
+  /* System interrupt init*/
+
+  /** NOJTAG: JTAG-DP Disabled and SW-DP Enabled
+  */
+  LL_GPIO_AF_Remap_SWJ_NOJTAG();
 
   /* USER CODE BEGIN Init */
 
@@ -102,7 +111,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-
   /* USER CODE BEGIN 2 */
 	
   DWT_Delay_Init();
@@ -146,6 +154,7 @@ void SystemClock_Config(void)
    /* Wait till HSE is ready */
   while(LL_RCC_HSE_IsReady() != 1)
   {
+
   }
   LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE_DIV_1, LL_RCC_PLL_MUL_9);
   LL_RCC_PLL_Enable();
@@ -165,18 +174,9 @@ void SystemClock_Config(void)
   {
 
   }
+  LL_Init1msTick(72000000);
   LL_SetSystemCoreClock(72000000);
-
-   /* Update the time base */
-  if (HAL_InitTick (TICK_INT_PRIORITY) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSRC_PCLK2_DIV_6);
 }
-
-
-
 
 /**
   * @brief GPIO Initialization Function

@@ -1,7 +1,10 @@
 #ifndef DWT_STM32_DELAY_H
 #define DWT_STM32_DELAY_H
 
-#include "stm32f1xx_hal.h"	// Needed for inline functions defined in this .h file
+#include "stdint.h"
+#include "stm32f103xb.h"
+#include "core_cm3.h"
+
 
 /*
  * Initializes DWT_Cycle_Count for DWT_Delay_us function
@@ -31,7 +34,7 @@ static inline void DWT_Delay_us(volatile uint32_t microseconds)
   uint32_t clk_cycle_start = DWT->CYCCNT;
 
   /* Go to number of cycles for system */
-  microseconds *= (HAL_RCC_GetHCLKFreq() / 1000000);
+  microseconds *= (SystemCoreClock / 1000000);
 
   /* Delay till end */
   while ((DWT->CYCCNT - clk_cycle_start) < microseconds);

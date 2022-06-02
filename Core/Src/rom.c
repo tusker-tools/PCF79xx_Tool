@@ -238,7 +238,7 @@ int write_eerom_buf(void)
 		return -1;
 		
 	if (user_op.len > pcf_mem_sizes[mdi_type].EEROM)
-		return -1;
+		return PAYLOAD_NOT_MATCHING_CHIP_MEM;
 		 
 	memset(chip_data.eeprom, 0x00, pcf_mem_sizes[mdi_type].EEROM);
 	chip_data.eeprom_len = user_op.len;

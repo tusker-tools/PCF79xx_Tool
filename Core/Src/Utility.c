@@ -5,6 +5,7 @@
 #include "Sysdefines.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_exti.h"
+#include "stm32f1xx_ll_rcc.h"
 #include "usb.h"
 
 /* Variables definition */
@@ -223,7 +224,7 @@ int revert(unsigned char *data, unsigned long len)
 {
 	volatile uint32_t reverted = 0;
 
-	if (data == NULL)
+	if (data == 0 )
 		return -1;
 
 	for (unsigned int i = 0; i < len; i++)
@@ -263,9 +264,6 @@ void revert_bytes(uint8_t *Data, uint8_t length)
 }
 
 
-
-
-
 /*
  *  Receive a number of bytes from USB buffer and writes it to Array "Data". If data is not available within tout_ms milliseconds,
  *  function returns corresponding status code. If tout_ms = UINT32_MAX, then the function will never time out.
@@ -293,7 +291,7 @@ status_code_t RcvBytesUSB(uint8_t Data[], uint16_t bytes, uint32_t tout_ms){
 	}
 	else{
 		// Loop with timeout
-		uint32_t t_resi = tout_ms * (HAL_RCC_GetHCLKFreq() / 1000);					// Residual time of tout
+		uint32_t t_resi = tout_ms * (SystemCoreClock / 1000);					// Residual time of tout
 
 		while( (t_resi > 0) && (bytes_received < bytes) )
 		{	
@@ -348,7 +346,7 @@ void SendBytesUsb(uint8_t Data[], uint16_t bytes, uint32_t tout)
 	}
 	else
 	{
-		uint32_t t_resi = tout * (HAL_RCC_GetHCLKFreq() / 1000000);					// Residual time of tout
+		uint32_t t_resi = tout * (SystemCoreClock / 1000000);					// Residual time of tout
 
 		while((bytes_sent < bytes) && (t_resi > 0))
 		{

@@ -189,9 +189,8 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
-  /* USER CODE BEGIN SysTick_IRQn 1 */
 
+  /* USER CODE BEGIN SysTick_IRQn 1 */
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -208,21 +207,12 @@ void SysTick_Handler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-//EXTI->IMR &= ~(EXTI_EMR_MR14_Msk);
   /* USER CODE END EXTI15_10_IRQn 0 */
-	LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_2);
 
   if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_14) != RESET)
   {
-		
-		
-		
     /* USER CODE BEGIN LL_EXTI_LINE_14 */
-
 		exti_handler();
-		//EXTI->IMR &= ~EXTI_EMR_MR14_Msk;	// Clear external interrupt mask for MSCL Pin (if it is no already done by data_handler)
-		//set_IRQ_and_EXTI_Line_Cmd(1,LL_EXTI_TRIGGER_FALLING);
-		//LL_GPIO_ResetOutputPin(GPIOA,LL_GPIO_PIN_3); Geht nicht weil vom compiler wegopitimert. Keine Ahnung warum!
     /* USER CODE END LL_EXTI_LINE_14 */
 				
   }
@@ -236,5 +226,3 @@ void EXTI15_10_IRQHandler(void)
 
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-
-

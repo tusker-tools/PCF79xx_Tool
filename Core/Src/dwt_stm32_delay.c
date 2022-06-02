@@ -1,4 +1,3 @@
-#include "stm32f1xx_hal.h"
 #include "dwt_stm32_delay.h"
 
 /*

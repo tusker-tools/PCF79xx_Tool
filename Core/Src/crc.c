@@ -1,5 +1,4 @@
 #include "stdint.h"
-#include "stm32f1xx_hal.h"
 #include "main.h"
 #include "Sysdefines.h"
 #include "Utility.h"
@@ -10,7 +9,7 @@
 /*
  * Calculate CRC32 of memory region. This function uses STM32's CRC hardware.
  */
-unsigned long crc32_calculate(const unsigned char *data, size_t len)
+unsigned long crc32_calculate(const unsigned char *data, uint16_t len)
 {
   uint32_t i, j;
 	
