@@ -46,7 +46,7 @@ int ui_cmd_recv(void)
 		return -1;
 	
 	if (user_op.len > 0) {
-		if (user_op.len > BUF_SIZE)
+		if (user_op.len > EROM_SIZE_DBL)
 			return -1;
 		
 		if (user_op.ops == READ_ER_BUF_CKS || user_op.ops == CONNECT || user_op.ops == READ_PCF_MEM_CKS )
@@ -222,7 +222,15 @@ int ui_cmd_handler(void)
 		break;
 		
 	case READ_ER:
-		ret = read_erom();
+		if(user_op.len == 0)
+		{
+			ret = read_erom_full();
+		}
+		else
+		{
+			ret = read_erom_byte();
+		}
+
 		status = ret > 0 ? ret : SUCCESSFULL;
 		break;
 

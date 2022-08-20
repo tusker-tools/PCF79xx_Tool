@@ -53,6 +53,7 @@ enum MDI_COMMAND_E {
 	C_SIG_XROM_or_EEROM_NORM = 0x1E,
 	C_EE_DUMP = 0x0E,
 	C_ER_DUMP = 0x0F,
+	C_RD_ER_BYTE = 0x1B,
 	C_SIG_EE = 0x11,
 	C_PROTECT = 0x12,
 	C_PROG_CONFIG = 0x14,
@@ -71,7 +72,7 @@ struct mdi_data_s {
 		};
 		unsigned char data[BUF_SIZE + 2];
 	};
-	unsigned long transfer;		  // data transfered
+	volatile unsigned long transfer;		  // data transfered
 	unsigned char *data_ptr;	// pointer to the data to be sent
 };
 

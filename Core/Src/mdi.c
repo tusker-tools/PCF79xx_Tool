@@ -161,13 +161,8 @@ int enter_monitor_mode(void)
 	
 	delay_us(50);
 
-	set_MSDA(0);
+	recv_data(1);
 	
-	// ToDo: Check if Receive data can be used here
-	mdi.status = INIT;
-	mdi.dir = RECV;
-
-
 	/* rising edge signalizes confirmation of MDI mode request */
 	active_MSCL_rising_edge_IT(1);
 
@@ -354,6 +349,8 @@ int send_mdi_cmd(unsigned char byte)
  */
 int recv_data(unsigned long len)
 {		
+	mdi.transfer = 0;
+
 	if (mdi.dir == SEND){
 		delay_us(500);
 	}

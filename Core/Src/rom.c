@@ -17,7 +17,7 @@ int pcf_erase(void);
  *  Define mem layout for different chips
  */
 struct mem_layout pcf_mem_sizes[]={
-		[F26A0700]	=	{EROM_SIZE_STD,512},
+		[F26A0700]	=	{EROM_SIZE_DBL,512},
 		[PCF7945]	=	{EROM_SIZE_STD,1024}
 };
 
@@ -538,20 +538,55 @@ int read_erom_buf(void)
  *
  * return -1:error 0:success
  */
-int read_erom(void)
+int read_erom_full(void)
 {
 	int status = 0;
 
 	/* send command */
 	send_mdi_cmd(C_ER_DUMP);
 	
-	/* check eecon */	
-	status = recv_data(pcf_mem_sizes[mdi_type].EROM);
-	
-	if (status == 0)
+	for(int i=0; i < pcf_mem_sizes[mdi_type].EROM; i = i + EROM_SIZE_STD)
+	{
+		status |= recv_data(EROM_SIZE_STD);
+		if (status == 0)
+		{
+			SendBytesUsb(mdi.data, EROM_SIZE_STD, UINT32_MAX);
+		}
+		else
+		{
+			return status;
+		}
+	}
 
-	SendBytesUsb(mdi.data, pcf_mem_sizes[mdi_type].EROM, UINT32_MAX);
 	return status;	
+}
+
+/*
+ * Reads single bytes from a range specified in the user_cmd and outputs it to the user interface.
+ *
+ * return -1:error 0:success
+ */
+int read_erom_byte(void)
+{
+	int status = 0;
+
+	for(int i=0; i < user_op.len; i++)
+	{
+		send_mdi_cmd(C_RD_ER_BYTE);
+		send_mdi_cmd((uint8_t)(0xFF & (user_op.address + i)));	// Write address low
+		send_mdi_cmd((uint8_t)(0x3FFF & ((user_op.address + i)>>8)));	// Write address high
+		status |= recv_data(1);
+		if (status == 0)
+		{
+			SendBytesUsb(mdi.data, 1, UINT32_MAX);
+		}
+		else
+		{
+			return status;
+		}
+	}
+
+	return status;
 }
 
 /*

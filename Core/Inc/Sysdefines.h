@@ -61,7 +61,8 @@ Config for MDI protocol
 Memory configuration (PCF memory / PCF_Tool memory)
 **************************/
 #define EROM_PAGE_SIZE       		32
-#define EROM_SIZE_STD	  		  8192
+#define EROM_SIZE_STD	  		  	8192
+#define EROM_SIZE_DBL	  		  	8192*2
 #define EROM_PAGE_SIZE64	 		64
 #define EEPROM_PAGE_SIZE     		4
 #define BUF_SIZE             		8224
