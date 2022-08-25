@@ -50,13 +50,12 @@ We want to program a hex file with 8kB size to the EROM beginning at adress 0. I
 - Driver files from ST's Standard Peripheral- CMSIS- and HAL library are licensed under the BSD 3-Clause license by ST. The license text is given in the header of these files
 
 ## Further Development:
-- [ ] Bootloader for updating the firmware via USB (USB Mass Storage Device)
 - [ ] Test and add support for other PCF79xx type transponders
-- [ ] Investigate the missing part for making a programmed PCF7945C05 (BMW CAS3 5WK49125 Key) working
+
 
 ## FAQ:
 **Q:** &nbsp; I reprogrammed the EEROM and EROM of an used 5WK49125 Key for BMW CAS3, but afterwards the Key is not acessible with Hitag RFID Programmer!<br>
-**A:** &nbsp; Unfortunately, it is not yet possible to produce a working key. It seems that something is missing in the programming procedure. If you have a commercial PCF flash tool, it would be great if you provide a logic analyzer capture of the programming procedure, so the missing part could be identified and implemented.
+**A:** &nbsp; Make sure you use an EROM bin with correct bit order. E.g. use the EROM file for VVDI tool, this has the correct bit order. After programming EROM and EEROM, chick must be set to protected mode in order to make the key working.
 
 
 **Q:** &nbsp; When I read out the EEROM of the PCF after programming, there are still some bytes which are different from the binary I programmed!<br>
