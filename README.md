@@ -52,6 +52,11 @@ We want to program a hex file with 8kB size to the EROM beginning at adress 0. I
 ## Further Development:
 - [ ] Test and add support for other PCF79xx type transponders
 
+## Toolchain:
+This project was build with STM32CubeIDE. Just import and it should compile straight away without any issues. If you encounter problems, please report them.
+
+## Contribution:
+Any contribution is highly appreciated. In case you find any problem, no matter to which subject (documentation, useability, bugs, unintended behavior etc.), do not hesitate to create an issue. The same applies to feature requests.
 
 ## FAQ:
 **Q:** &nbsp; I reprogrammed the EEROM and EROM of an used 5WK49125 Key for BMW CAS3, but afterwards the Key is not acessible with Hitag RFID Programmer!<br>
