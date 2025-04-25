@@ -1,0 +1,11 @@
+doxygen/doxygen_new_line_after_brief=true
+doxygen/doxygen_use_brief_tag=false
+doxygen/doxygen_use_javadoc_tags=true
+doxygen/doxygen_use_pre_tag=false
+doxygen/doxygen_use_structural_commands=false
+eclipse.preferences.version=1
+environment/project/com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1163389182/PATH/delimiter=;
+environment/project/com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1163389182/PATH/operation=replace
+environment/project/com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1163389182/PATH/value=C\:\\Program Files\\ST\\STM32CubeIDE\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.1.0.202410251130\\tools\\bin;C\:\\Program Files\\ST\\STM32CubeIDE\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.make.win32_2.2.0.202409170845\\tools\\bin;C\:/Program Files/ST/STM32CubeIDE/STM32CubeIDE//plugins/com.st.stm32cube.ide.jre.win64_3.4.0.202409160955/jre/bin/server;C\:/Program Files/ST/STM32CubeIDE/STM32CubeIDE//plugins/com.st.stm32cube.ide.jre.win64_3.4.0.202409160955/jre/bin;C\:\\Program Files\\Common Files\\ETAS\\3rdParty6.0\\;C\:\\Program Files\\Common Files\\Oracle\\Java\\javapath;C\:\\WINDOWS\\system32;C\:\\WINDOWS;C\:\\WINDOWS\\System32\\Wbem;C\:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C\:\\WINDOWS\\System32\\OpenSSH\\;C\:\\Program Files\\dotnet\\;C\:\\Program Files (x86)\\STMicroelectronics\\STM32 ST-LINK Utility\\ST-LINK Utility;C\:\\Users\\Philipp\\AppData\\Local\\Microsoft\\WindowsApps;C\:\\Users\\Philipp\\.dotnet\\tools;;C\:\\Program Files\\ST\\STM32CubeIDE\\STM32CubeIDE
+environment/project/com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1163389182/append=true
+environment/project/com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1163389182/appendContributed=true
