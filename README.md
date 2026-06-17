@@ -4,10 +4,11 @@ The PCF79xx_Tool enumerates itself as serial port. It can either be controlled b
 
 The project base originates from the github project https://github.com/w01230/PCF7953.
 
-<code style="color : red">
+[!CAUTION]
+
 !!!Important Note!!!
 The project does not work anymore (as reported by multiple users). There seems to be a bug in the latest version. I can't give you any info currently. You could try using a predecessor version. 
-</code>
+
 
 ## Supported PCF79xx chips:
 - PCF7945C05 (BMW CAS3 key, 5WK49125) --> Tested ok!
